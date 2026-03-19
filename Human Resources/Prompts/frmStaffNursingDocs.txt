@@ -1,0 +1,51 @@
+Hola hoy vamos hacer el formulario de carga de documentos de enfermeria. Este formulario es muy sencillo. La primera parte es para localizar la o las personas que e usuario necesite buscar. Es decir un Textbox donde coloquemos el nombre o el apellido y no los presente en un DataGrid (dgListado) donde posteriormente seleccionemos a uno. Una vez seleccionado nos Debera mostrar todos los documentos que tenemos en la tabla "tblNursingDocs" : (Esta parte poseera dos botones [Post] y [Exit]
+
+USE [bdHomeCare]
+GO
+
+/****** Object:  Table [dbo].[tblNursingDocs]    Script Date: 1/22/2026 11:01:32 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tblNursingDocs](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Description] [nvarchar](80) NULL,
+	[Inservice] [bit] NULL,
+ CONSTRAINT [PK_tblNursingDocs] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+En ese nuevo DataGrid que lo podemos llamar "dgDocuments" va a tener dos columnas la Descripcion del documento "tblNursing[Description]" y una columna adicional tipo fecha (DatePicker) donde ingresaremos la fecha de vencimiento de cada uno de los documentos. Esta parte poseera 2 botones [Safe] y [Home].
+
+Vamos a guardar solo los campos que fueron llenados y lo aremos en la siguiente tabla "tblStaffNursingDocs" 
+
+USE [bdHomeCare]
+GO
+
+/****** Object:  Table [dbo].[tblStaffNursingDocs]    Script Date: 1/22/2026 11:11:28 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[tblStaffNursingDocs](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[idStaffNursing] [int] NULL,
+	[idNursingDocs] [int] NULL,
+	[DateDoc] [date] NULL,
+ CONSTRAINT [PK_tblStaffNursingDocs] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
+Es de entender que si llamo a una persona del Staff Debera traerme su informacion. Es importante resaltar que vamos a continuar trabajando con las Clases para el manejo de las tablas..... Este formulario lo llamaremos "tblStaffNursingDocs" y la clase "ClassStaffNursingDocs" tienes alguna pregunta antes de hacerlo?

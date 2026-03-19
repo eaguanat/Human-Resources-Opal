@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Human_Resources.Data
+{
+    internal class ClassConexion
+    {
+        public static string CadenaConexion = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=bdHomeCare;Integrated Security=True;TrustServerCertificate=True;";
+    }
+}

@@ -1,0 +1,61 @@
+Formulario "frmFindStaffNursing"
+
+La informacion de los enfermeros esta en la tabla (tblStaffNursing)
+La informacion de los documentos esta (tblDocsNursing)
+La informacion con la fecha de vencimiento esta (tblStaffNursingDocs)
+
+La estructura de la (tblStaffNursingDocs)
+
+[id](PK, int, No NULL)
+[idStaffNursing] (int, NULL)  -> (tblStaffNursing) -> id
+[idNursingDocs] (int, NULL) -> (tblNursingDocs) -> id
+[Date] (date, NULL)
+
+
+El filtro lo vamos a dividir de la siguiente manera para no tener tantan informacion en la pantala:
+
+Principal vamos a tener: (tblStaffNursing)
+1.- Nombre+Apellido [Name] [LastName] - TextBox
+2.- Region [idGeoRegion] => (tblGeoRegion) - ComboBox
+3.- Activo [Active] = CheckBox
+4.- Fecha Inical de Vencimiento "ExpirationFrom" - DatePicker
+5.- Hasta la Fecha ""Expiration Until" - DatePiker
+
+Los puntos 4 y 5 va hacer el rango de busqueda de vencimiento.
+
+Ahora bien como me indicaste vamos a tener un boton con una tuerca en caso de que queramos hacer mas filtros. Los otros filtro van hacer:
+
+6.- State [idGeoState] => (tblGeoState)
+7.- City [idGeoCity] => (tblGeoCity)
+8.- ZipCode [ZipCode]
+9.- Licence Type [LicLPN] o [LicRN] colocarlo en un comboxBox
+10.- Payment Type [idDocsPayrool] => (tblDocsPayroll) - comboBox
+11.- Bank [idBanks] => (tblBanks) - ComboBox
+12.- Pay Method [idBanksMethod] => (tblBanksMethod) - ComboBox
+13.- Inmigration Docs [idDocsInmigration] => (tblDocsInmigration) - ComboBox
+
+Debe tener un boton de [search] y [Exit]
+
+Que debe mostrar en el primer DataGrid (dgListado):
+[idLastName]+[Name]
+
+En este debe tener 3 botonoes
+
+[Print] [View] [Go Back]
+
+[Print] Si decide imprimir realizara un impression de cada uno enfermeros (as) con la lista de los documentos vencidos (Cada vez que cambie de enfermero Debera colocar el membrete y seguir con los datos e indicar la cantidad de paginas por enfermero)
+
+[View] En este caso colocara en nombre del enfermero [LastName]+[Name] y desplegara en un DataGrid [dgDocuments] los documentos que estan vencisdos.
+
+Checkbox [In-Service] - Description Docs - Date
+
+Este poseera dos botones en la parte de abajo:
+[Print] [Home] 
+
+[Print] Solo imprimira los documentos vencidos de ese enfermero
+[Home] Se va al principio del Formulario
+
+
+
+
+

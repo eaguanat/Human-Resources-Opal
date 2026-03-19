@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4F68F400-E1DE-4F2D-B9A9-68A5EC7E02EC}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Human_Resources</RootNamespace>
+    <AssemblyName>Human Resources</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ReachFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="Forms\frmBanks.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmBanksMethod.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDepartment.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDepLicense.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDocsAdditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDocsInmigration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDocsPayroll.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmDocsRequired.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmFindStaff.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmFindStaffAdditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmGeoRegion.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EstilosComunes.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmGeoCity.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmGeoState.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmLanguage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmStaff.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmStaffDocsRequired.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmStaffDocsAdditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\prnStaffDocsRequired.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Data\ClassBanks.cs" />
+    <Compile Include="Data\ClassBanksMethod.cs" />
+    <Compile Include="Data\ClassConexion.cs" />
+    <Compile Include="Data\ClassDepartment.cs" />
+    <Compile Include="Data\ClassDepLicense.cs" />
+    <Compile Include="Data\ClassDocsAdditional.cs" />
+    <Compile Include="Data\ClassDocsInmigration.cs" />
+    <Compile Include="Data\ClassDocsPayroll.cs" />
+    <Compile Include="Data\ClassDocsRequired.cs" />
+    <Compile Include="Data\ClassFindStaff.cs" />
+    <Compile Include="Data\ClassGeoCity.cs" />
+    <Compile Include="Data\ClassGeoRegion.cs" />
+    <Compile Include="Data\ClassGeoState.cs" />
+    <Compile Include="Data\ClassLanguage.cs" />
+    <Compile Include="Data\ClassStaff.cs" />
+    <Compile Include="Data\ClassStaffDocsRequired.cs" />
+    <Compile Include="Data\ClassStaffDocsAdditional.cs" />
+    <Compile Include="Data\ClassFindStaffAdditional.cs" />
+    <Compile Include="Forms\frmBanks.xaml.cs">
+      <DependentUpon>frmBanks.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmBanksMethod.xaml.cs">
+      <DependentUpon>frmBanksMethod.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDepartment.xaml.cs">
+      <DependentUpon>frmDepartment.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDepLicense.xaml.cs">
+      <DependentUpon>frmDepLicense.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDocsAdditional.xaml.cs">
+      <DependentUpon>frmDocsAdditional.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDocsInmigration.xaml.cs">
+      <DependentUpon>frmDocsInmigration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDocsPayroll.xaml.cs">
+      <DependentUpon>frmDocsPayroll.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDocsRequired.xaml.cs">
+      <DependentUpon>frmDocsRequired.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmFindStaff.xaml.cs">
+      <DependentUpon>frmFindStaff.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmFindStaffAdditional.xaml.cs">
+      <DependentUpon>frmFindStaffAdditional.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmGeoRegion.xaml.cs">
+      <DependentUpon>frmGeoRegion.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmGeoCity.xaml.cs">
+      <DependentUpon>frmGeoCity.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmGeoState.xaml.cs">
+      <DependentUpon>frmGeoState.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmLanguage.xaml.cs">
+      <DependentUpon>frmLanguage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmStaff.xaml.cs">
+      <DependentUpon>frmStaff.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmStaffDocsRequired.xaml.cs">
+      <DependentUpon>frmStaffDocsRequired.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmStaffDocsAdditional.xaml.cs">
+      <DependentUpon>frmStaffDocsAdditional.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\prnStaffDocsRequired.xaml.cs">
+      <DependentUpon>prnStaffDocsRequired.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

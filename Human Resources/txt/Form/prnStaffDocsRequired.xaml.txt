@@ -1,0 +1,181 @@
+﻿<Page x:Class="Human_Resources.Forms.prnStaffDocsRequired"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+      d:DesignHeight="842" d:DesignWidth="595"
+      Title="Print Preview" Background="#F0F0F0">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+
+            <Border x:Name="pnlReporte" 
+                    Background="White" 
+                    Width="780" 
+                    Margin="20" 
+                    Padding="45" 
+                    HorizontalAlignment="Center"
+                    BorderBrush="#CCCCCC" 
+                    BorderThickness="1">
+
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" Direction="315" Opacity="0.1"/>
+                </Border.Effect>
+
+                <StackPanel>
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="PERSONAL FILE" 
+                                       FontSize="20" 
+                                       HorizontalAlignment="Center"
+                                       FontWeight="Bold"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="SECTION " 
+                                           FontSize="16" 
+                                           FontWeight="Bold"/>
+                                <TextBlock x:Name="lblSeccionNum" 
+                                           FontSize="16" FontWeight="Bold" Width="20"/>
+                            </StackPanel>
+                            <TextBlock x:Name="lblCompany"
+                                       Text="Opal Hands Home Health Care LLC" 
+                                       HorizontalAlignment="Center"
+                                       FontSize="12" FontStyle="Italic" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1" VerticalAlignment="Top" Padding="5">
+                            <StackPanel>
+                                <TextBlock Text="DATE OF APPLICATION" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock x:Name="lblAppDate" FontSize="12" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Margin="0,0,0,10" HorizontalAlignment="Left">
+                        <TextBlock Text="POSITION" FontSize="8" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <ItemsControl x:Name="icLicenses">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                        <TextBlock Text="{Binding Description}" FontSize="11" FontWeight="SemiBold"/>
+                                        <TextBlock Text=" - " FontSize="11"/>
+                                        <TextBlock Text="{Binding LicenseNumber}" FontSize="11"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0,0,0,5">
+                        <StackPanel>
+                            <Border BorderBrush="Black" BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Margin="5">
+                                        <TextBlock Text="STAFF NAME" FontSize="8" FontWeight="Bold"/>
+                                        <TextBlock x:Name="lblNombre" FontSize="13" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1,0,0,0" Padding="5">
+                                        <StackPanel>
+                                            <TextBlock Text="DEPARTMENT" FontSize="8" FontWeight="Bold"/>
+                                            <TextBlock x:Name="lblDepto" FontSize="12"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="5">
+                                    <TextBlock Text="JOB DESCRIPTION" FontSize="8" FontWeight="Bold"/>
+                                    <TextBlock x:Name="lblJob" FontSize="12"/>
+                                </StackPanel>
+
+                                <Border Grid.Column="1" BorderBrush="Black" BorderThickness="1,0,1,0" Padding="5">
+                                    <StackPanel>
+                                        <TextBlock Text="DATE HIRED" FontSize="8" FontWeight="Bold"/>
+                                        <TextBlock x:Name="lblHired" FontSize="12"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <StackPanel Grid.Column="2" Margin="5">
+                                    <TextBlock Text="DATE END" FontSize="8" FontWeight="Bold"/>
+                                    <TextBlock x:Name="lblEnd" FontSize="12"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,15">
+                        <TextBlock Text="🔲" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="2,0,5,0"/>
+                        <TextBlock Text="ORIENTATION PROGRAM" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Border BorderBrush="Black" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Grid Background="#F2F2F2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="DESCRIPTION" FontWeight="Bold" Margin="5" FontSize="10"/>
+                                <TextBlock Grid.Column="1" Text="INITIAL" FontWeight="Bold" HorizontalAlignment="Center" FontSize="10"/>
+                                <TextBlock Grid.Column="2" Text="ANNUAL" FontWeight="Bold" HorizontalAlignment="Center" FontSize="10"/>
+                                <TextBlock Grid.Column="3" Text="ANNUAL" FontWeight="Bold" HorizontalAlignment="Center" FontSize="10"/>
+                                <TextBlock Grid.Column="4" Text="ANNUAL" FontWeight="Bold" HorizontalAlignment="Center" FontSize="10"/>
+                            </Grid>
+
+                            <ItemsControl x:Name="icDocs" Grid.Row="1">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="LightGray" BorderThickness="0,1,0,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="3*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Description}" Margin="5" FontSize="10" VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Initial, StringFormat=MM/dd/yyyy}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Annual1, StringFormat=MM/dd/yyyy}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Annual2, StringFormat=MM/dd/yyyy}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                                <TextBlock Grid.Column="4" Text="{Binding Annual3, StringFormat=MM/dd/yyyy}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+    </Grid>
+</Page>

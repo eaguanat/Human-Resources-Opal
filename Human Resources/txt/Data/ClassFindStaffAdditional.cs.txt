@@ -1,0 +1,373 @@
+﻿using System;
+using System.Collections.Specialized;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Windows.Xps;
+using System.Windows.Xps.Packaging;
+
+namespace Human_Resources.Data
+{
+    public class ClassFindStaffAdditional
+    {
+        // METODO: Obtener Staff que debe documentos requeridos
+        public DataTable ObtenerStaffConFaltantes(int idDepartment, string name, int idRegion, bool soloActivos, int idState, int idCity, string zip, int idLicense, int idPayroll, int idBank, int idMethod, int idInmigration)
+        {
+            // 1. EL FILTRO MAESTRO: Obtenemos el universo según criterios geográficos/laborales
+            ClassStaff staffData = new ClassStaff();
+            DataTable dtPersonalFiltrado = staffData.FiltrarPersonal(idDepartment, name, idRegion, soloActivos, idState, idCity, zip, idLicense, idPayroll, idBank, idMethod, idInmigration);
+
+            if (dtPersonalFiltrado.Rows.Count == 0) return dtPersonalFiltrado;
+
+            // Convertimos los IDs a una lista para el WHERE IN
+            string idsCualificados = string.Join(",", dtPersonalFiltrado.AsEnumerable().Select(r => r["id"].ToString()));
+
+            DataTable dtResultado = new DataTable();
+
+            // 2. LA CIRUGÍA: Buscamos Staff que tenga al menos un documento 'Required' 
+            // que NO exista en su historial de 'tblStaffDocsAdditional'
+            string query = $@"
+                           SELECT DISTINCT S.Id, S.LastName + ', ' + S.Name AS FullName
+                           FROM tblStaff S
+                           WHERE S.id IN ({idsCualificados})
+                           AND EXISTS (
+                           SELECT 1 FROM tblDocsAdditional DA 
+                           WHERE DA.Required = 1 
+                           AND NOT EXISTS (
+                           SELECT 1 FROM tblStaffDocsAdditional SDA 
+                           WHERE SDA.idStaff = S.id 
+                           AND SDA.idDocsAdditional = DA.id ))
+                           ORDER BY FullName";
+
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dtResultado);
+            }
+
+            return dtResultado;
+        }
+
+
+
+
+
+
+        // BORRAR
+        public DataTable XXXObtenerStaffConFaltantes(int idDepartment, string name, int idRegion, bool soloActivos,
+                                                 int idState, int idCity, string zip, int idLicense,
+                                                 int idPayroll, int idBank, int idMethod, int idInmigration)
+        {
+            DataTable dtResultado = new DataTable();
+            dtResultado.Columns.Add("id", typeof(int));
+            dtResultado.Columns.Add("FullName", typeof(string));
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ClassConexion.CadenaConexion))
+                {
+                    conn.Open();
+
+                    // A. Traer Staff con TODOS los filtros de la pantalla
+                    string sqlStaff = @"SELECT id, LastName + ', ' + Name as FullName FROM tblStaff 
+                               WHERE IdDepartment = @idDept " +
+                                       (soloActivos ? " AND Active = 1 " : "") +
+                                       (idRegion > 0 ? " AND IdGeoRegion = @idReg " : "") +
+                                       (idState > 0 ? " AND idGeoState = @idSt " : "") +
+                                       (idCity > 0 ? " AND idGeoCity = @idCt " : "") +
+                                       (!string.IsNullOrEmpty(zip) ? " AND ZipCod = @zip " : "") +
+                                       (!string.IsNullOrEmpty(name) ? " AND (Name LIKE @n OR LastName LIKE @n) " : "");
+
+                    SqlCommand cmdStaff = new SqlCommand(sqlStaff, conn);
+                    cmdStaff.Parameters.AddWithValue("@idDept", idDepartment);
+                    cmdStaff.Parameters.AddWithValue("@idReg", idRegion);
+                    cmdStaff.Parameters.AddWithValue("@idSt", idState);
+                    cmdStaff.Parameters.AddWithValue("@idCt", idCity);
+                    cmdStaff.Parameters.AddWithValue("@zip", zip ?? "");
+                    cmdStaff.Parameters.AddWithValue("@n", "%" + name + "%");
+
+                    DataTable dtStaff = new DataTable();
+                    new SqlDataAdapter(cmdStaff).Fill(dtStaff);
+
+                    // B. Traer Documentos que HOY son requeridos
+                    string sqlReq = "SELECT Id FROM tblDocsAdditional WHERE Required = 1";
+                    DataTable dtRequired = new DataTable();
+                    new SqlDataAdapter(sqlReq, conn).Fill(dtRequired);
+
+                    // C. Traer todas las entregas registradas
+                    string sqlEntregas = "SELECT IdStaff, IdDocsAdditional FROM tblStaffDocsAdditional";
+                    DataTable dtEntregas = new DataTable();
+                    new SqlDataAdapter(sqlEntregas, conn).Fill(dtEntregas);
+
+                    // --- CRUCE MANUAL ---
+                    foreach (DataRow rowStaff in dtStaff.Rows)
+                    {
+                        int idEmp = (int)rowStaff["id"];
+                        bool faltaAlgúnDocumento = false;
+
+                        foreach (DataRow rowDoc in dtRequired.Rows)
+                        {
+                            int idDocReq = (int)rowDoc["Id"];
+
+                            // Buscamos si existe la relación en la tabla de entregas
+                            DataRow[] entregas = dtEntregas.Select($"IdStaff = {idEmp} AND IdDocsAdditional = {idDocReq}");
+
+                            if (entregas.Length == 0) // Si no hay registros, es un FALTANTE
+                            {
+                                faltaAlgúnDocumento = true;
+                                break;
+                            }
+                        }
+
+                        if (faltaAlgúnDocumento)
+                        {
+                            dtResultado.Rows.Add(rowStaff["id"], rowStaff["FullName"]);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) { throw new Exception("Error en cruce procedural: " + ex.Message); }
+            return dtResultado;
+        }
+
+
+        public DataTable ObtenerDetalleFaltantes(int idStaff)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+           SELECT Description, 'PENDING' as Status 
+           FROM tblDocsAdditional 
+           WHERE Required = 1 
+           AND Id NOT IN (SELECT IdDocsAdditional FROM tblStaffDocsAdditional WHERE IdStaff = @idStaff)
+           ORDER BY Description";
+
+            using (SqlConnection conn = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlCommand cmd = new SqlCommand(query, conn);
+                // Ahora sí coinciden: @idStaff en el Query y @idStaff en el parámetro
+                cmd.Parameters.AddWithValue("@idStaff", idStaff);
+                new SqlDataAdapter(cmd).Fill(dt);
+            }
+            return dt;
+        }
+
+
+        // REPORTE MASIVO: Obtiene todos los faltantes de todos los empleados que cumplen el filtro.
+        public DataTable ObtenerDetalleFaltantesMasivo(int idDepartment, string name, int idRegion, bool soloActivos, int idState, int idCity, string zip, int idLicense, int idPayroll, int idBank, int idMethod, int idInmigration)
+        {
+            ClassStaff staffData = new ClassStaff();
+            DataTable dtPersonalFiltrado = staffData.FiltrarPersonal(idDepartment, name, idRegion, soloActivos, idState, idCity, zip, idLicense, idPayroll, idBank, idMethod, idInmigration);
+
+            if (dtPersonalFiltrado.Rows.Count == 0) return dtPersonalFiltrado;
+
+            string idsCualificados = string.Join(",", dtPersonalFiltrado.AsEnumerable().Select(r => r["id"].ToString()));
+
+            DataTable dtResultado = new DataTable();
+
+            // Cruzamos el personal filtrado con los documentos requeridos que NO poseen
+            string query = $@"
+                           SELECT 
+                           R.Description as RegionName,
+                           S.LastName + ', ' + S.Name AS FullName,
+                           DA.Description as DocName
+                           FROM tblStaff S
+                           INNER JOIN tblGeoRegion R ON S.idGeoRegion = R.id
+                           CROSS JOIN tblDocsAdditional DA
+                           WHERE S.id IN ({idsCualificados})
+                           AND DA.Required = 1
+                           AND NOT EXISTS (
+                           SELECT 1 FROM tblStaffDocsAdditional SDA 
+                           WHERE SDA.idStaff = S.id 
+                           AND SDA.idDocsAdditional = DA.id )
+                           ORDER BY RegionName, FullName, DocName";
+
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dtResultado);
+            }
+
+            return dtResultado;
+        }
+
+
+
+        // BORRAR
+        public DataTable XXXObtenerDetalleFaltantesMasivo(int idDepartment, string name, int idRegion, bool soloActivos,
+                                                       int idState, int idCity, string zip, int idLicense,
+                                                       int idPayroll, int idBank, int idMethod, int idInmigration)
+        {
+            DataTable dt = new DataTable();
+            string query = @"
+            SELECT S.id, S.LastName + ', ' + S.Name AS FullName, DA.Description, NULL as DateDoc
+            FROM tblStaff S
+            CROSS JOIN tblDocsAdditional DA
+            WHERE DA.Required = 1 
+            AND S.IdDepartment = @idDept " +
+            (soloActivos ? " AND S.Active = 1 " : "") +
+            (idRegion > 0 ? " AND S.IdGeoRegion = @idReg " : "") +
+            @" AND NOT EXISTS (
+                SELECT 1 FROM tblStaffDocsAdditional SDA 
+                WHERE SDA.IdStaff = S.id 
+                AND SDA.IdDocsAdditional = DA.Id
+            )
+            ORDER BY FullName, DA.Description";
+
+            using (SqlConnection conn = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@idDept", idDepartment);
+                cmd.Parameters.AddWithValue("@idReg", idRegion);
+                // ... (agregar los demás parámetros igual que arriba)
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+
+        private DataTable EjecutarQuery(string query)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                new SqlDataAdapter(query, conn).Fill(dt);
+            }
+            return dt;
+        }
+
+        public void ImprimirDocSilencioso(FlowDocument doc, string fullPath)
+        {
+            if (File.Exists(fullPath)) File.Delete(fullPath);
+            using (XpsDocument xpsDoc = new XpsDocument(fullPath, FileAccess.Write))
+            {
+                XpsDocument.CreateXpsDocumentWriter(xpsDoc).Write(((IDocumentPaginatorSource)doc).DocumentPaginator);
+            }
+        }
+
+
+
+
+        // ------------C O M B O S ------------
+        // --- MÉTODOS DE APOYO (COMBOS) ---
+        public DataTable ObtenerDepartementos()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblDepartment ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public DataTable ObtenerLicense(int idDepartment)
+        {
+            DataTable dt = new DataTable();
+            // Filtramos tblGeoCity usando la columna IdGeoState
+            string query = "SELECT Id, Description FROM tblDepLicense WHERE idDepartment = @idDepartment ORDER BY Description ASC";
+
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@idDepartment", idDepartment);
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public DataTable ObtenerRegiones()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblGeoRegion ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+
+        public DataTable ObtenerState()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblGeoState ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public DataTable ObtenerCity(int idEstado)
+        {
+            DataTable dt = new DataTable();
+            // Filtramos tblGeoCity usando la columna IdGeoState
+            string query = "SELECT Id, Description FROM tblGeoCity WHERE IdGeoState = @idEstado ORDER BY Description ASC";
+
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@idEstado", idEstado);
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+        public DataTable ObtenerDocsInmigration()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblDocsInmigration ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public DataTable ObtenerBancos()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblBanks ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+        public DataTable ObtenerDocsPayroll()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblDocsPayroll ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+        public DataTable ObtenerBanksMethod()
+        {
+            DataTable dt = new DataTable();
+            string query = "SELECT id, Description FROM tblBanksMethod ORDER BY Description ASC";
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                SqlDataAdapter da = new SqlDataAdapter(query, con);
+                da.Fill(dt);
+            }
+            return dt;
+        }
+
+    }
+}

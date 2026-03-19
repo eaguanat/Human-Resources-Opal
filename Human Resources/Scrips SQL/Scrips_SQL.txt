@@ -1,0 +1,195 @@
+-- =============================================
+-- SCRIPT DEFINITIVO PARA AZURE SQL - OPAL HANDS
+-- =============================================
+
+-- 1. CONFIGURACIÓN Y SEGURIDAD
+CREATE TABLE [dbo].[cfgAccess](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idUser] [int] NOT NULL,
+    [Access] [int] NOT NULL,
+    CONSTRAINT [PK_cfgAccess] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[cfgAuthorizedDevices](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [DeviceHash] [varchar](255) NOT NULL,
+    [DeviceName] [varchar](100) NULL,
+    [IsActive] [bit] NULL,
+    [RegistrationDate] [datetime] NULL,
+    CONSTRAINT [PK_cfgAuthorizedDevices] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[cfgUsers](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [FullName] [nvarchar](50) NULL,
+    [Name] [nvarchar](20) NULL,
+    [Clave] [nvarchar](400) NOT NULL,
+    [email] [nvarchar](50) NULL,
+    [phone] [nvarchar](20) NULL,
+    [DescriptionJob] [nvarchar](50) NULL,
+    [Active] [bit] NULL,
+    CONSTRAINT [PK_cfgUsers] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+-- 2. CATÁLOGOS MAESTROS
+CREATE TABLE [dbo].[tblBanks](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblBanks] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblBanksMethod](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblBanksMethod] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblDepartment](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](50) NULL,
+    CONSTRAINT [PK_tblDepartment] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblGeoRegion](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblGeoRegion2] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblGeoState](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblGeoCity] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblGeoCity](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [IdGeoState] [int] NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblGeoCity_1] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblLanguage](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblLanguage] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+-- 3. DOCUMENTACIÓN Y EMPRESA
+CREATE TABLE [dbo].[tblDocsAdditional](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    [Required] [bit] NULL,
+    CONSTRAINT [PK_tblDocsAdditional] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblDocsInmigration](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblDocsInmigration] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblDocsPayroll](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [Description] [nvarchar](40) NULL,
+    CONSTRAINT [PK_tblDocsPayroll] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblDocsRequired](
+    [Id] [int] IDENTITY(1,1) NOT NULL,
+    [idDepartment] [int] NULL,
+    [idSection] [int] NULL,
+    [Description] [nvarchar](80) NULL,
+    CONSTRAINT [PK_tblDocsRequired] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[tblCompany](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idGeoRegion] [int] NULL,
+    [Name] [nvarchar](50) NULL,
+    [Address] [nvarchar](50) NULL,
+    [idGeoState] [int] NULL,
+    [idGeoCity] [int] NULL,
+    [ZipCode] [nvarchar](5) NULL,
+    [Phone] [nvarchar](20) NULL,
+    [Email] [nvarchar](50) NULL,
+    [Logo] [varbinary](max) NULL,
+    CONSTRAINT [PK_tblCompany] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+-- 4. PERSONAL (STAFF) Y LICENCIAS
+CREATE TABLE [dbo].[tblDepLicense](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idDepartment] [int] NULL,
+    [Description] [nvarchar](50) NULL,
+    CONSTRAINT [PK_tblDepLicense] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblStaff](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [Name] [nvarchar](25) NULL,
+    [LastName] [nvarchar](25) NULL,
+    [IdDepartment] [int] NULL,
+    [Birthday] [date] NULL,
+    [AppDay] [date] NULL,
+    [HiredDay] [date] NULL,
+    [EndDay] [date] NULL,
+    [Address] [nvarchar](80) NULL,
+    [IdGeoRegion] [int] NULL,
+    [idGeoState] [int] NULL,
+    [idGeoCity] [int] NULL,
+    [ZipCod] [nvarchar](5) NULL,
+    [Phone] [nvarchar](20) NULL,
+    [Email] [nvarchar](50) NULL,
+    [ContactPersonA] [nvarchar](40) NULL,
+    [ContactPhoneA] [nvarchar](20) NULL,
+    [ContactPersonB] [nvarchar](40) NULL,
+    [ContactPhoneB] [nvarchar](20) NULL,
+    [idDocsPayroll] [int] NULL,
+    [CompanyName] [nvarchar](40) NULL,
+    [idBanks] [int] NULL,
+    [idBanksMethod] [int] NULL,
+    [AccountNumber] [nvarchar](30) NULL,
+    [RoutingNumber] [nvarchar](30) NULL,
+    [idDocsInmigration] [int] NULL,
+    [Social] [nchar](15) NULL,
+    [JobDes] [nvarchar](30) NULL,
+    [Rate] [decimal](18, 2) NULL,
+    [Active] [bit] NULL,
+    CONSTRAINT [PK_tblStaff] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblStaffDocsAdditional](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [IdStaff] [int] NULL,
+    [IdDocsAdditional] [int] NULL,
+    [DateDoc] [date] NULL,
+    CONSTRAINT [PK_tblStaffNursingDocsAdditional] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblStaffDocsRequired](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idStaff] [int] NULL,
+    [idDocsRequired] [int] NULL,
+    [DateDoc] [date] NULL,
+    [DateLog] [date] NULL,
+    CONSTRAINT [PK_tblStaffDocsRequired] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblStaffLanguage](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idStaff] [int] NULL,
+    [idLanguage] [int] NULL,
+    [CanWrite] [bit] NULL,
+    [CanRead] [bit] NULL,
+    CONSTRAINT [PK_tblStaffLanguage] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+
+CREATE TABLE [dbo].[tblStaffLicense](
+    [id] [int] IDENTITY(1,1) NOT NULL,
+    [idStaff] [int] NULL,
+    [idDepLicense] [int] NULL,
+    [LicenseNumber] [nvarchar](30) NULL,
+    CONSTRAINT [PK_tblStaffLicense] PRIMARY KEY CLUSTERED ([id] ASC)
+);
+GO

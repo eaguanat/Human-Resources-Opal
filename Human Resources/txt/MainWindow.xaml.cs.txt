@@ -1,0 +1,295 @@
+﻿using Human_Resources.Forms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using System.Xml.Linq;
+
+
+namespace Human_Resources
+{
+    public partial class MainWindow : Window
+    {
+        private bool isMenuOpen = true;
+        
+
+        public MainWindow()
+        {
+            InitializeComponent();
+       
+        }
+
+        // ============================================================
+        // LÓGICA DE NAVEGACIÓN POR PESTAÑAS (TABCONTROL)
+        // ============================================================
+
+        private void AbrirFormulario(string titulo, Page pagina)
+        {
+            // 1. Verificamos si la pestaña ya existe para no abrirla dos veces
+            foreach (TabItem item in tcPrincipal.Items)
+            {
+                if (item.Header.ToString() == titulo)
+                {
+                    tcPrincipal.SelectedItem = item; // Si existe, la seleccionamos
+                    return;
+                }
+            }
+
+            // 2. Si no existe, creamos una nueva pestaña
+            TabItem nuevaTab = new TabItem();
+            nuevaTab.Header = titulo;
+
+            // Creamos un Frame interno para cada pestaña para alojar la Page
+            Frame frameInterno = new Frame();
+            frameInterno.Navigate(pagina);
+            nuevaTab.Content = frameInterno;
+
+            tcPrincipal.Items.Add(nuevaTab);
+            tcPrincipal.SelectedItem = nuevaTab; // Enfocamos la nueva pestaña
+        }
+
+        private void BtnCerrarTab_Click(object sender, RoutedEventArgs e)
+        {
+            // Lógica para cerrar la pestaña desde la "X" del diseño
+            Button btn = (Button)sender;
+            TabItem tabItem = FindParent<TabItem>(btn);
+            if (tabItem != null)
+            {
+                tcPrincipal.Items.Remove(tabItem);
+            }
+        }
+
+        // Helper para encontrar el TabItem padre del botón de cierre
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null) return null;
+            T parent = parentObject as T;
+            return parent ?? FindParent<T>(parentObject);
+        }
+
+        // ============================================================
+        // EVENTOS DE CLIC EN MENÚS Y SUBMENÚS
+        // ============================================================
+
+        private void BtnFrmGeoState_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("States", new Forms.frmGeoState());
+        }
+
+        private void BtnFrmGeoCity_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Cities", new Forms.frmGeoCity());
+        }
+        private void BtnFrmGeoRegion_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Regions", new Forms.frmGeoRegion());
+        }
+
+        private void BtnFrmDocsInmigration_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Inmigrations", new Forms.frmDocsInmigration());
+        }
+        private void BtnFrmLanguage_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Language", new Forms.frmLanguage());
+        }
+        
+        private void BtnFrmDocsPayroll_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Payroll", new Forms.frmDocsPayroll());
+        }
+        private void BtnFrmBanks_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Banks", new Forms.frmBanks());
+        }
+        private void BtnFrmBanksMethod_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Payments", new Forms.frmBanksMethod());
+        }
+        private void BtnFrmDepartment_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Department", new Forms.frmDepartment());
+        }
+        private void BtnFrmDepLicense_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Licenses", new Forms.frmDepLicense());
+        }
+        
+
+         
+
+
+        // DOCUMENTS
+        private void BtnFrmDocsRequired_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Documents Required", new Forms.frmDocsRequired());
+        }
+        private void BtnFrmDocsAdditional_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Docs Additional", new Forms.frmDocsAdditional());
+        }
+
+
+
+        // STAFF
+        private void BtnFrmStaff_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Company Staff", new Forms.frmStaff());
+        }
+        private void BtnFrmStaffDocsRequired_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Staff Documents Required", new Forms.frmStaffDocsRequired());
+        }
+        private void BtnFrmStaffDocsAditional_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Staff Documents Additional", new Forms.frmStaffDocsAdditional());
+        }
+
+
+        // FIND STAFF
+        private void BtnFrmFindStaff_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Documents Required", new Forms.frmFindStaff());
+        }
+        private void BtnFrmFindStaffAdditional_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Documents Additional Required", new Forms.frmFindStaffAdditional());
+        }
+
+
+        private void SubMenu_Click(object sender, RoutedEventArgs e)
+        {
+            // Este método evita el error que tenías en el XAML
+            // Aquí puedes centralizar lógica si lo deseas en el futuro
+        }
+
+        // ============================================================
+        // LÓGICA DE ANIMACIÓN Y CONTROL DEL MENÚ LATERAL
+        // ============================================================
+
+        private void BtnToggle_Click(object sender, RoutedEventArgs e)
+        {
+            GridLength startWidth = isMenuOpen ? new GridLength(235) : new GridLength(60);
+            GridLength endWidth = isMenuOpen ? new GridLength(60) : new GridLength(235);
+
+            var animacion = new GridLengthAnimation
+            {
+                From = startWidth,
+                To = endWidth,
+                Duration = TimeSpan.FromSeconds(0.3),
+                EasingFunction = new QuarticEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            if (isMenuOpen) OcultarTextos();
+
+            animacion.Completed += (s, ev) =>
+            {
+                if (!isMenuOpen) MostrarTextos();
+                isMenuOpen = !isMenuOpen;
+            };
+
+            GridMenu.BeginAnimation(ColumnDefinition.WidthProperty, animacion);
+        }
+
+        private void OcultarTextos()
+        {
+            txtDefinitions.Visibility = Visibility.Collapsed;
+            txtConfig.Visibility = Visibility.Collapsed;
+            pnlSubMenuDefinitions.Visibility = Visibility.Collapsed;
+            pnlSubMenuDocument.Visibility = Visibility.Collapsed;
+            pnlSubMenuStaff.Visibility = Visibility.Collapsed;
+        }
+
+        private void MostrarTextos()
+        {
+            txtDefinitions.Visibility = Visibility.Visible;
+            txtConfig.Visibility = Visibility.Visible;
+        }
+
+        private void BtnDefinitions_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isMenuOpen) BtnToggle_Click(null, null);
+
+            if (pnlSubMenuDefinitions.Visibility == Visibility.Visible)
+            {
+                pnlSubMenuDefinitions.Visibility = Visibility.Collapsed;
+                txtFlecha.Text = "⌵";
+            }
+            else
+            {
+                pnlSubMenuDefinitions.Visibility = Visibility.Visible;
+                txtFlecha.Text = "⌃";
+            }
+        }
+
+
+        private void BtnDocument_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isMenuOpen) BtnToggle_Click(null, null);
+            pnlSubMenuDocument.Visibility = (pnlSubMenuDocument.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
+            if (txtFlecha5 != null) txtFlecha5.Text = (pnlSubMenuDocument.Visibility == Visibility.Visible) ? "⌃" : "⌵";
+        }
+
+        // STAFF
+        private void BtnStaff_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isMenuOpen) BtnToggle_Click(null, null);
+            pnlSubMenuStaff.Visibility = (pnlSubMenuStaff.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
+            if (txtFlecha4 != null) txtFlecha4.Text = (pnlSubMenuStaff.Visibility == Visibility.Visible) ? "⌃" : "⌵";
+        }
+
+        // FIND
+        private void BtnFind_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isMenuOpen) BtnToggle_Click(null, null);
+            pnlSubMenuFind.Visibility = (pnlSubMenuFind.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
+            if (txtFlecha6 != null) txtFlecha6.Text = (pnlSubMenuFind.Visibility == Visibility.Visible) ? "⌃" : "⌵";
+        }
+
+
+
+    }
+
+    // ============================================================
+    // CLASE AUXILIAR PARA ANIMACIÓN DE GRID
+    // ============================================================
+    public class GridLengthAnimation : AnimationTimeline
+    {
+        public override Type TargetPropertyType => typeof(GridLength);
+        protected override Freezable CreateInstanceCore() => new GridLengthAnimation();
+
+        public static readonly DependencyProperty FromProperty = DependencyProperty.Register("From", typeof(GridLength), typeof(GridLengthAnimation));
+        public GridLength From { get => (GridLength)GetValue(FromProperty); set => SetValue(FromProperty, value); }
+
+        public static readonly DependencyProperty ToProperty = DependencyProperty.Register("To", typeof(GridLength), typeof(GridLengthAnimation));
+        public GridLength To { get => (GridLength)GetValue(ToProperty); set => SetValue(ToProperty, value); }
+
+        public IEasingFunction EasingFunction { get; set; }
+
+        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)
+        {
+            double fromVal = From.Value;
+            double toVal = To.Value;
+
+            double progress = animationClock.CurrentProgress.Value;
+            if (EasingFunction != null) progress = EasingFunction.Ease(progress);
+
+            if (fromVal > toVal)
+                return new GridLength((1 - progress) * (fromVal - toVal) + toVal);
+
+            return new GridLength(progress * (toVal - fromVal) + fromVal);
+        }
+    }
+}
