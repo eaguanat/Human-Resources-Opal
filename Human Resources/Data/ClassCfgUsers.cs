@@ -7,9 +7,14 @@ using System.Linq;
 using System.Security.Cryptography; // ¡IMPORTANTE para el hashing!
 using System.Text;
 using System.Windows; // Para MessageBox, aunque es mejor que las capas de datos no lo usen directamente.
+using System.Xml.Linq;
+using System.IO;
+using System.Diagnostics;
+
 
 namespace Human_Resources.Data
 {
+    
     // Clase para representar un módulo de acceso en C#
     public class AccessModule
     {
@@ -17,9 +22,42 @@ namespace Human_Resources.Data
         public string Description { get; set; }
         public bool IsChecked { get; set; } // Para la UI del ListBox
     }
-
+    
     public class ClassCfgUsers
     {
+
+        // OBTENEMOS LA VERSION DE LA APLICACI
+        public static string ObtenerVersionUpdate()
+        {
+            // 1. Definimos la ruta de la "Calle Principal" en la unidad G
+            string rutaInstalador = @"G:\Mi unidad\Software_Deployments\Human_Resources\Installer\Human Resources.application";
+
+            try
+            {
+                // 2. ¿Existe el archivo? Si no, salimos sin hacer ruido
+                if (!File.Exists(rutaInstalador)) return null;
+
+                // 3. Leemos el XML del archivo .application
+                XDocument xmlDoc = XDocument.Load(rutaInstalador);
+                XNamespace asmv1 = "urn:schemas-microsoft-com:asm.v1";
+
+                // 4. Buscamos la etiqueta <assemblyIdentity> que tiene la versión
+                var assemblyIdentity = xmlDoc.Descendants(asmv1 + "assemblyIdentity").FirstOrDefault();
+
+                if (assemblyIdentity != null)
+                {
+                    return assemblyIdentity.Attribute("version")?.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Solo para depuración en Visual Studio
+                Debug.WriteLine("Error leyendo versión en Drive: " + ex.Message);
+            }
+            return null;
+        }
+
+
         // --- PROPIEDADES DE USUARIO ---
         public int Id { get; set; }
         public string FullName { get; set; }

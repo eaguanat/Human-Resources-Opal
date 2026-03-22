@@ -67,6 +67,7 @@ namespace Human_Resources.Data
                     FROM tblDocsRequired R
                     WHERE R.idDepartment = (SELECT idDepartment FROM tblStaff WHERE id = @idStaff)
                     AND R.idSection = @idSection 
+                    AND R.Required = 1
                     ORDER BY R.Description ASC";
 
                 SqlCommand cmd = new SqlCommand(sql, con);
@@ -126,6 +127,7 @@ namespace Human_Resources.Data
                 FROM tblDocsRequired dr
                 LEFT JOIN tblStaffDocsRequired sdr ON dr.id = sdr.idDocsRequired AND sdr.idStaff = @idS
                 WHERE dr.idSection = @idSec
+                AND dr.Required = 1
             ) AS SourceTable
             WHERE RowNum <= 4
             GROUP BY Description";
@@ -160,6 +162,7 @@ namespace Human_Resources.Data
                 FROM tblDocsRequired dr
                 LEFT JOIN tblStaffDocsRequired sdr ON dr.id = sdr.idDocsRequired AND sdr.idStaff = @ids
                 WHERE dr.idSection = @idSec
+                AND dr.Required = 1
             ) AS Fuente
             WHERE PosReciente <= 4
             GROUP BY Description";

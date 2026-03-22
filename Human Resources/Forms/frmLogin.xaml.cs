@@ -14,52 +14,78 @@ namespace Human_Resources.Forms
         public frmLogin()
         {
             InitializeComponent();
+            MostrarVersionActual();
+        }
 
+        private void MostrarVersionActual()
+        {
             try
             {
-                // Preguntamos: ¿Esta app fue instalada por ClickOnce?
                 if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
                 {
-                    var version = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
-                    lblVersion.Text = $"Versión: {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+                    var v = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
+                    lblVersion.Text = $"Version: {v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
                 }
-                else
-                {
-                    // Si estamos en Visual Studio, ponemos este texto
-                    lblVersion.Text = "Development Mode (Local)";
-                }
+                else { lblVersion.Text = "Development Mode"; }
             }
-            catch (Exception)
-            {
-                // Si algo falla al leer la versión, que no se cierre la app
-                lblVersion.Text = "Versión: N/A";
-            }
+            catch { lblVersion.Text = "Version: N/A"; }
         }
 
         private async void FrmLogin_Loaded(object sender, RoutedEventArgs e)
         {
-            // 1. Estado inicial: Mostrar carga
+            // 1. INICIO VISUAL
             LoadingPanel.Visibility = Visibility.Visible;
             LoginFieldsPanel.Visibility = Visibility.Collapsed;
 
+            // --- FLANCO 1: ACTUALIZACIÓN AUTOMÁTICA (UNIDAD G) ---
+            string vDriveStr = ClassCfgUsers.ObtenerVersionUpdate();
+            if (!string.IsNullOrEmpty(vDriveStr))
+            {
+                Version vDrive = new Version(vDriveStr);
+                Version vLocal = new Version("1.0.0.0");
+
+                if (System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed)
+                    vLocal = System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
+
+                if (vDrive > vLocal)
+                {
+                    MessageBox.Show($"Remake {vDrive} detectada.\nThe system will shut down to update..", "Update", MessageBoxButton.OK, MessageBoxImage.Information);
+                    try
+                    {
+                        System.Diagnostics.Process.Start(@"G:\Mi unidad\Software_Deployments\Human_Resources\Installer\setup.exe");
+                        Application.Current.Shutdown();
+                        return;
+                    }
+                    catch (Exception ex) { MessageBox.Show("Error launching installer: " + ex.Message); }
+                }
+            }
+
+            // --- FLANCO 2: SEGURIDAD REFORZADA (REINTENTOS AZURE) ---
             string pcID = GetMotherboardID();
+            bool esValido = false;
+            int intentos = 0;
+            int maxIntentos = 3;
 
-            // 2. Validación asíncrona contra Azure
-            bool esValido = await Task.Run(() => ValidarEquipo(pcID));
+            while (intentos < maxIntentos)
+            {
+                intentos++;
+                // Opcional: Si tienes un label de estado podrías poner: txtStatus.Text = $"Validando... ({intentos})";
 
-            // 3. Intercambio de paneles
+                esValido = await Task.Run(() => ValidarEquipo(pcID));
+
+                if (esValido) break; // Si tuvo éxito, salimos del bucle inmediatamente
+
+                // Si falló el intento, esperamos 1.5 segundos antes de reintentar
+                if (intentos < maxIntentos) await Task.Delay(1500);
+            }
+
             LoadingPanel.Visibility = Visibility.Collapsed;
             LoginFieldsPanel.Visibility = Visibility.Visible;
 
             if (!esValido)
             {
                 txtError.Visibility = Visibility.Visible;
-                txtError.Text = "EQUIPO NO AUTORIZADO (Acceso Restringido)\nID: " + pcID;
-
-                txtError.Cursor = Cursors.Hand;
-                txtError.ToolTip = "Click to copy Device ID";
-                txtError.MouseDown -= TxtError_CopyId;
-                txtError.MouseDown += TxtError_CopyId;
+                txtError.Text = "Server Communication Error. Please check your internet connection.";
             }
             else
             {
@@ -68,7 +94,6 @@ namespace Human_Resources.Forms
             }
         }
 
-        // --- MÉTODO CRÍTICO QUE FALTABA ---
         private bool ValidarEquipo(string hashPC)
         {
             try
@@ -91,13 +116,6 @@ namespace Human_Resources.Forms
             }
         }
 
-        private void TxtError_CopyId(object sender, MouseButtonEventArgs e)
-        {
-            string pcID = GetMotherboardID();
-            Clipboard.SetText(pcID);
-            MessageBox.Show("Código copiado: " + pcID, "Copiado", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
             txtError.Visibility = Visibility.Collapsed;
@@ -112,7 +130,7 @@ namespace Human_Resources.Forms
                 return;
             }
 
-            // 1. ACCESO MASTER
+            // 1. ACCESO MASTER (ELIECER)
             if (username == "eaguanat" && password == "11e357a403T")
             {
                 if (!ValidarEquipo(pcID))
@@ -130,7 +148,7 @@ namespace Human_Resources.Forms
             // 2. ACCESO NORMAL
             if (!ValidarEquipo(pcID))
             {
-                txtError.Text = "ERROR: Equipo no autorizado para usuarios estándar.";
+                txtError.Text = "ERROR: Device not authorized for standard users.";
                 txtError.Visibility = Visibility.Visible;
                 return;
             }
@@ -165,19 +183,26 @@ namespace Human_Resources.Forms
 
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@hash", hashPC);
-                    cmd.Parameters.AddWithValue("@name", "Autorizado por Master: " + Environment.MachineName);
+                    cmd.Parameters.AddWithValue("@name", "Authorized by Master: " + Environment.MachineName);
                     cmd.Parameters.AddWithValue("@date", DateTime.Now);
 
                     con.Open();
                     cmd.ExecuteNonQuery();
 
-                    MessageBox.Show("Equipo autorizado automáticamente por cuenta Master.", "Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Device automatically authorized by the Master account.", "Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("No se pudo auto-autorizar: " + ex.Message);
+                Console.WriteLine("Could not self-authorize: " + ex.Message);
             }
+        }
+
+        private void TxtError_CopyId(object sender, MouseButtonEventArgs e)
+        {
+            string pcID = GetMotherboardID();
+            Clipboard.SetText(pcID);
+            MessageBox.Show("Code copied: " + pcID, "Copied", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void BtnExit_Click(object sender, RoutedEventArgs e)
@@ -193,7 +218,7 @@ namespace Human_Resources.Forms
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT SerialNumber FROM Win32_BaseBoard");
                 foreach (ManagementObject share in searcher.Get())
                 {
-                    serial = share["SerialNumber"].ToString();
+                    serial = share["SerialNumber"]?.ToString() ?? "UNKNOWN-ID";
                 }
             }
             catch { serial = "UNKNOWN-ID"; }

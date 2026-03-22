@@ -17,6 +17,7 @@ namespace Human_Resources.Data
         public int IdDepartment { get; set; }
         public int IdSection { get; set; }
         public string Description { get; set; }
+        public bool Required { get; set; }
 
 
         // 1. LISTAR (Filtrado por Departamento para el DataGrid)
@@ -28,7 +29,7 @@ namespace Human_Resources.Data
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
                     // S.Description es el nombre del departamento
-                    string query = @"SELECT C.Id, C.IdSection, C.Description, S.Description as DepartmentName 
+                    string query = @"SELECT C.Id, C.IdSection, C.Description, C.Required, S.Description as DepartmentName 
                                    FROM tblDocsRequired C 
                                    INNER JOIN tblDepartment S ON C.idDepartment = S.id 
                                    WHERE C.idDepartment = @id and C.IdSection = @idSection
@@ -56,7 +57,7 @@ namespace Human_Resources.Data
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
                     // Ordenamos por Departamento, luego Inservice (True primero) y luego Alfabético
-                    string query = @"SELECT S.Description as DepartmentName, C.Description , C.idSection
+                    string query = @"SELECT S.Description as DepartmentName, C.Description , C.idSection, C.Required
                                    FROM tblDocsRequired C 
                                    INNER JOIN tblDepartment S ON C.idDepartment = S.id 
                                    ORDER BY S.Description ASC, C.IdSection ASC, C.Description ASC";
@@ -79,11 +80,12 @@ namespace Human_Resources.Data
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
                     // Corregido: idDepartment e Inservice
-                    string query = "INSERT INTO tblDocsRequired (idDepartment, idSection, Description) VALUES (@idDepartment, @idSection, @desc )";
+                    string query = "INSERT INTO tblDocsRequired (idDepartment, idSection, Description, Required) VALUES (@idDepartment, @idSection, @desc, @Required )";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@idDepartment", this.IdDepartment);
                     cmd.Parameters.AddWithValue("@idSection", this.IdSection);
                     cmd.Parameters.AddWithValue("@desc", this.Description);
+                    cmd.Parameters.AddWithValue("@Required", this.Required);
                     con.Open();
                     return cmd.ExecuteNonQuery() > 0;
                 }
@@ -97,11 +99,12 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "UPDATE tblDocsRequired SET idDepartment = @idDepartment, idSection = @idSection, Description = @desc WHERE Id = @id";
+                    string query = "UPDATE tblDocsRequired SET idDepartment = @idDepartment, idSection = @idSection, Description = @desc, Required = @Required WHERE Id = @id";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@idDepartment", this.IdDepartment);
                     cmd.Parameters.AddWithValue("@idSection", this.IdSection);
                     cmd.Parameters.AddWithValue("@desc", this.Description);
+                    cmd.Parameters.AddWithValue("@Required", this.Required);
                     cmd.Parameters.AddWithValue("@id", this.Id);
                     con.Open();
                     return cmd.ExecuteNonQuery() > 0;

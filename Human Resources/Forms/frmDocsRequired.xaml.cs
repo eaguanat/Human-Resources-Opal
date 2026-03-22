@@ -102,6 +102,7 @@ namespace Human_Resources.Forms
             GridEdicion.Visibility = Visibility.Visible;
             if (btnPrint != null) btnPrint.Visibility = Visibility.Collapsed;
             txtDescription.Clear();
+            CbRequired.IsChecked = false;
             txtDescription.Focus();
         }
 
@@ -115,6 +116,7 @@ namespace Human_Resources.Forms
             DataRowView fila = (DataRowView)dgDocuments.SelectedItem;
             idSeleccionado = Convert.ToInt32(fila["Id"]);
             txtDescription.Text = fila["Description"].ToString();
+            CbRequired.IsChecked = fila["Required"] != DBNull.Value ? Convert.ToBoolean(fila["Required"]) : false;
             lblFindA.Text = cmbFiltroDpto.Text + " - " + cmbSection.Text;
             lblTitulo.Text = "Update Description";
             if (btnPrint != null) btnPrint.Visibility = Visibility.Collapsed;
@@ -137,6 +139,7 @@ namespace Human_Resources.Forms
             objeto.Description = txtDescription.Text.Trim();
             objeto.IdDepartment = Convert.ToInt32(cmbFiltroDpto.SelectedValue);
             objeto.IdSection = Convert.ToInt32(cmbSection.SelectedValue);
+            objeto.Required = CbRequired.IsChecked ?? false;
 
             bool success = (idSeleccionado == 0) ? objeto.Insertar() : objeto.Actualizar();
             if (success)
@@ -202,16 +205,18 @@ namespace Human_Resources.Forms
 
         private void BtnPrint_Click(object sender, RoutedEventArgs e)
         {
-            // 1. VALIDACIÓN: Si no hay departamento seleccionado, abortamos y avisamos
-            if (cmbFiltroDpto.SelectedValue == null)
+            // 1. VALIDACIÓN: Aseguramos que ambos combos tengan selección
+            if (cmbFiltroDpto.SelectedValue == null || cmbSection.SelectedValue == null)
             {
-                MessageBox.Show("Please select a Department before printing.", "Attention", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select Department and Section before printing.", "Attention", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            string nombreDepartamento = cmbFiltroDpto.Text; // El texto visible del combo
+            // Capturamos los textos de los combos para el título
+            string nombreDepartamento = cmbFiltroDpto.Text;
+            string nombreSeccion = cmbSection.Text; // <--- Nueva variable para la Sección
 
-            // 2. Obtener datos (Usamos el método Listar que ya filtra por el ID seleccionado)
+            // 2. Obtener datos
             int idFindA = Convert.ToInt32(cmbFiltroDpto.SelectedValue);
             int idFindB = Convert.ToInt32(cmbSection.SelectedValue);
             Data.ClassDocsRequired objData = new Data.ClassDocsRequired();
@@ -219,7 +224,7 @@ namespace Human_Resources.Forms
 
             if (dt == null || dt.Rows.Count == 0)
             {
-                MessageBox.Show("No documents found for this department.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("No documents found for this selection.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -228,18 +233,14 @@ namespace Human_Resources.Forms
             doc.PagePadding = new Thickness(50);
             doc.FontFamily = new FontFamily("Segoe UI");
 
-            // --- ENCABEZADO: Empresa y Fecha ---
+            // --- ENCABEZADO: Empresa y Fecha (Se mantiene igual) ---
             Table tableHeader = new Table();
             tableHeader.Columns.Add(new TableColumn());
             tableHeader.Columns.Add(new TableColumn());
             TableRowGroup rowGroupHeader = new TableRowGroup();
             TableRow headerRow = new TableRow();
-
-            // Nombre de la Empresa (Tomado del título de la ventana)
             string companyName = Window.GetWindow(this).Title;
             headerRow.Cells.Add(new TableCell(new Paragraph(new Run(companyName)) { FontWeight = FontWeights.Bold, FontSize = 12 }));
-
-            // Fecha y Hora
             Paragraph pFechaHora = new Paragraph();
             pFechaHora.Inlines.Add(new Run(DateTime.Now.ToString("MM/dd/yyyy")));
             pFechaHora.Inlines.Add(new LineBreak());
@@ -247,13 +248,17 @@ namespace Human_Resources.Forms
             pFechaHora.TextAlignment = TextAlignment.Right;
             pFechaHora.FontSize = 10;
             headerRow.Cells.Add(new TableCell(pFechaHora));
-
             rowGroupHeader.Rows.Add(headerRow);
             tableHeader.RowGroups.Add(rowGroupHeader);
             doc.Blocks.Add(tableHeader);
 
-            // 4. TÍTULO DINÁMICO (Nombre del Departamento)
-            Paragraph tituloCentral = new Paragraph(new Run(nombreDepartamento.ToUpper()));
+            // 4. TÍTULO DINÁMICO (Departamento + Sección)
+            // Combinamos ambos textos en una sola línea o puedes usar un LineBreak
+            Paragraph tituloCentral = new Paragraph();
+            tituloCentral.Inlines.Add(new Run(nombreDepartamento.ToUpper()));
+            tituloCentral.Inlines.Add(new LineBreak()); // Salto de línea para que se vea elegante
+            tituloCentral.Inlines.Add(new Run(nombreSeccion.ToUpper()) { FontSize = 16 }); // Sección un poco más pequeña
+
             tituloCentral.FontSize = 20;
             tituloCentral.FontWeight = FontWeights.Bold;
             tituloCentral.TextAlignment = TextAlignment.Center;
@@ -261,28 +266,26 @@ namespace Human_Resources.Forms
             doc.Blocks.Add(tituloCentral);
 
             // 5. SUBTÍTULO
-            Paragraph subTitulo = new Paragraph(new Run("( I )  Description"));
+            Paragraph subTitulo = new Paragraph(new Run("( R )  Required Description"));
             subTitulo.FontSize = 12;
             subTitulo.FontStyle = FontStyles.Italic;
             subTitulo.TextAlignment = TextAlignment.Left;
             subTitulo.Margin = new Thickness(0, 0, 0, 10);
             doc.Blocks.Add(subTitulo);
 
-            // Línea divisoria decorativa
+            // Línea divisoria
             doc.Blocks.Add(new BlockUIContainer(new Border { BorderBrush = Brushes.Black, BorderThickness = new Thickness(0, 0, 0, 2), Margin = new Thickness(0, 0, 0, 15) }));
 
-            // 6. LISTADO DE DOCUMENTOS
+            // 6. LISTADO DE DOCUMENTOS (Con la corrección de 'Required')
             foreach (DataRow row in dt.Rows)
             {
-                bool isInservice = Convert.ToBoolean(row["Inservice"]);
+                bool isRequired = row["Required"] != DBNull.Value ? Convert.ToBoolean(row["Required"]) : false;
                 string descripcion = row["Description"].ToString();
 
                 Paragraph pDoc = new Paragraph();
                 pDoc.Margin = new Thickness(10, 0, 0, 8);
 
-                // Representación del Checkbox de Inservice
-                // Usamos el caracter Unicode de caja marcada (☑) o vacía (☐)
-                string checkChar = isInservice ? "  ☑  " : "  ☐  ";
+                string checkChar = isRequired ? "  ☑  " : "  ☐  ";
 
                 Run runCheck = new Run(checkChar)
                 {
@@ -293,18 +296,16 @@ namespace Human_Resources.Forms
 
                 pDoc.Inlines.Add(runCheck);
                 pDoc.Inlines.Add(new Run(" " + descripcion) { FontSize = 12 });
-
                 doc.Blocks.Add(pDoc);
             }
 
-            // 7. DIÁLOGO DE IMPRESIÓN
+            // 7. DIÁLOGO DE IMPRESIÓN (Se mantiene igual)
             PrintDialog pd = new PrintDialog();
             if (pd.ShowDialog() == true)
             {
                 doc.PageHeight = pd.PrintableAreaHeight;
                 doc.PageWidth = pd.PrintableAreaWidth;
                 doc.ColumnWidth = pd.PrintableAreaWidth;
-
                 IDocumentPaginatorSource idpSource = doc;
                 pd.PrintDocument(idpSource.DocumentPaginator, "Department Documents Report");
             }

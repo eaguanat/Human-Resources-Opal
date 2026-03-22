@@ -88,6 +88,30 @@
                             <DataGridTextColumn Header="Document Description" 
                                                 Binding="{Binding Description}" 
                                                 Width="*" />
+                            <DataGridCheckBoxColumn Header="( R )" 
+        Binding="{Binding Required}" 
+        IsReadOnly="True"
+        Width="50">
+                                <DataGridCheckBoxColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                    </Style>
+                                </DataGridCheckBoxColumn.HeaderStyle>
+
+                                <DataGridCheckBoxColumn.ElementStyle>
+                                    <Style TargetType="CheckBox">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="1"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridCheckBoxColumn.ElementStyle>
+                            </DataGridCheckBoxColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -117,6 +141,14 @@
                                  BorderThickness="0,0,0,2" 
                                  BorderBrush="#3498db" 
                                  Background="#F4F4F4"/>
+
+                        <CheckBox x:Name="CbRequired" 
+                                  Content="Is this document required?" 
+                                  FontSize="16" 
+                                  Margin="0,15,0,0"
+                                  Foreground="#2E3137"
+                                  VerticalContentAlignment="Center"
+                                  Cursor="Hand"/>
 
                         <StackPanel Orientation="Horizontal" Margin="0,40,0,0" HorizontalAlignment="Center">
                             <Button Content="_Update" Name="BtnUpdate" Click="BtnUpdate_Click" 
