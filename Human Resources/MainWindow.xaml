@@ -152,6 +152,21 @@
                             </StackPanel>
                         </StackPanel>
 
+                        <StackPanel x:Name="pnlProspectsContainer">
+                            <Button Style="{StaticResource MenuButtonStyle}" Click="BtnProspects_Click">
+                                <Grid Width="235">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="👤" FontSize="20" Margin="18,0,25,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="txtProspects" Text="Prospects" FontSize="16" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="txtFlechaProspects" Text="⌵" HorizontalAlignment="Right" Margin="0,0,20,0" VerticalAlignment="Center" Foreground="White"/>
+                                </Grid>
+                            </Button>
+                            <StackPanel x:Name="pnlSubMenuProspects" Visibility="Collapsed" Background="#3E4249">
+                                <Button Content="  ⭕ Applicants" Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmApplicants_Click"/>
+                                <Button Content="  ⭕ Required Docs" Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmProspectsDocs_Click"/>
+                            </StackPanel>
+                        </StackPanel>
 
                         <StackPanel x:Name="pnlSetup">
                             <Button Style="{StaticResource MenuButtonStyle}" Click="BtnSetup_Click">

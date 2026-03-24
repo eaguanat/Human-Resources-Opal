@@ -190,6 +190,20 @@ namespace Human_Resources
         }
 
 
+        // PROPECTS
+        private void BtnFrmApplicants_Click(object sender, RoutedEventArgs e)
+        {
+            // Este abrirá la lista de gente que aplicó desde la Web
+//            AbrirFormulario("Applicants", new Forms.frmApplicants());
+        }
+
+        private void BtnFrmProspectsDocs_Click(object sender, RoutedEventArgs e)
+        {
+            // Este es para que usted configure la lista de documentos (tblDocsRequired)
+            AbrirFormulario("Prospects Documents", new Forms.frmApplicantsDocs());
+        }
+
+
         // SETUP
 
         private void BtnFrmCompany_Click(object sender, RoutedEventArgs e)
@@ -400,6 +414,19 @@ namespace Human_Resources
                 if (txtFlecha6 != null) txtFlecha6.Text = (pnlSubMenuFind.Visibility == Visibility.Visible) ? "⌃" : "⌵";
             }
         }
+
+        // PROSPECTS
+        private void BtnProspects_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isMenuOpen) BtnToggle_Click(null, null);
+
+            if (pnlProspectsContainer.Visibility == Visibility.Visible)
+            {
+                pnlSubMenuProspects.Visibility = (pnlSubMenuProspects.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
+                if (txtFlechaProspects != null) txtFlechaProspects.Text = (pnlSubMenuProspects.Visibility == Visibility.Visible) ? "⌃" : "⌵";
+            }
+        }
+
 
         // SETUP
         private void BtnSetup_Click(object sender, RoutedEventArgs e)

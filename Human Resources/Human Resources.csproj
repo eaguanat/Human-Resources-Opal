@@ -99,6 +99,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Forms\frmApplicantsDocs.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Forms\frmBanks.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -199,6 +203,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\ClassApplicantsDocs.cs" />
     <Compile Include="Data\ClassBanks.cs" />
     <Compile Include="Data\ClassBanksMethod.cs" />
     <Compile Include="Data\ClassCfgAuthorizedDevices.cs" />
@@ -220,6 +225,9 @@
     <Compile Include="Data\ClassStaffDocsRequired.cs" />
     <Compile Include="Data\ClassStaffDocsAdditional.cs" />
     <Compile Include="Data\ClassFindStaffAdditional.cs" />
+    <Compile Include="Forms\frmApplicantsDocs.xaml.cs">
+      <DependentUpon>frmApplicantsDocs.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Forms\frmBanks.xaml.cs">
       <DependentUpon>frmBanks.xaml</DependentUpon>
     </Compile>

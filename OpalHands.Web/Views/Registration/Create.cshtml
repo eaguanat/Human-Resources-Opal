@@ -1,0 +1,172 @@
+﻿@model OpalHands.Web.Models.Applicants
+
+@{
+    ViewData["Title"] = "Registro / Registration";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<div class="container mt-4 shadow-sm p-4 bg-white rounded">
+    <div class="text-center mb-4">
+        <h2 class="text-success fw-bold">Opal Hands Home Health Care</h2>
+        <h4 class="text-muted">Application Form / Formulario de Aplicación</h4>
+    </div>
+
+    <form asp-action="Create" id="mainForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white fw-bold">
+                Step 1: Account Setup / Paso 1: Configuración de Cuenta
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold">Email / Correo <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input asp-for="Email" id="txtEmail" class="form-control" placeholder="example@mail.com" />
+                            <span class="input-group-text bg-white border-start-0 d-none" id="check-Email"><i class="bi bi-check-circle-fill text-success"></i></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Password / Contraseña <span class="text-danger">*</span></label>
+                        <input asp-for="Password" id="txtPass" type="password" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" id="btnVerify" class="btn btn-primary w-100 fw-bold">Verify / Verificar</button>
+                    </div>
+                </div>
+                <div id="emailMessage" class="mt-2 fw-bold text-danger" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div id="secondStep" style="display: none;">
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label fw-bold">Position you are applying for / Posición a la que aplica <span class="text-danger">*</span></label>
+                    <select asp-for="idDepartment" id="ddlDept" class="form-select border-success shadow-sm">
+                        <option value="">-- Select Option / Seleccione Opción --</option>
+                        <option value="1">Nursing / Enfermería</option>
+                        <option value="2">Long Term Care / Cuidado a Largo Plazo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">First Name / Nombre <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="FirstName" class="form-control required-field" />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Last Name / Apellido <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="LastName" class="form-control required-field" />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Phone / Teléfono <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="Phone" class="form-control required-field" />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label class="form-label fw-bold">Address / Dirección <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="Address" class="form-control required-field" />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">State / Estado <span class="text-danger">*</span></label>
+                    <input asp-for="idGeoState" class="form-control required-field" placeholder="Ex: FL" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">City / Ciudad <span class="text-danger">*</span></label>
+                    <input asp-for="idGeoCity" class="form-control required-field" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Zip Code <span class="text-danger">*</span></label>
+                    <input asp-for="ZipCode" class="form-control required-field" />
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" id="btnFinalize" class="btn btn-secondary btn-lg px-5 shadow" disabled>
+                    Finish Application / Finalizar Aplicación
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+        // 1. VERIFICACIÓN DE EMAIL
+        $('#btnVerify').click(function() {
+        var email = $('#txtEmail').val();
+        var pass = $('#txtPass').val();
+
+        if(email == "" || pass == "") {
+        alert("Please fill Email and Password / Por favor llene Email y Clave");
+        return;
+        }
+
+        $.get('/Registration/CheckEmail', { email: email }, function(data) {
+        if(data.isDuplicate) {
+        $('#emailMessage').text("Estamos analizando su propuesta, lo contactaremos a través de su correo electrónico.").show();
+        $('#secondStep').hide();
+        } else {
+        $('#emailMessage').hide();
+        $('#txtEmail, #txtPass, #btnVerify').prop('readonly', true).addClass('bg-light');
+        $('#check-Email').removeClass('d-none');
+        $('#secondStep').fadeIn();
+        }
+        });
+        });
+
+        // 2. SISTEMA DE CHECKS VERDES Y HABILITAR BOTÓN FINAL
+        $('.required-field, #ddlDept').on('input change', function() {
+        var input = $(this);
+        var group = input.closest('.input-group');
+        var icon = group.find('.input-group-text');
+
+        if(input.val() !== "") {
+        icon.removeClass('d-none');
+        } else {
+        icon.addClass('d-none');
+        }
+
+        // Verificar si TODO está lleno para habilitar el botón final
+        validateAll();
+        });
+
+        function validateAll() {
+        var allFilled = true;
+        $('.required-field').each(function() {
+        if($(this).val() === "") allFilled = false;
+        });
+        if($('#ddlDept').val() === "") allFilled = false;
+
+        if(allFilled) {
+        $('#btnFinalize').removeClass('btn-secondary').addClass('btn-success').prop('disabled', false);
+        } else {
+        $('#btnFinalize').addClass('btn-secondary').removeClass('btn-success').prop('disabled', true);
+        }
+        }
+        });
+    </script>
+}

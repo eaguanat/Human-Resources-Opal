@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Human Resources/Human Resources.csproj" Id="4f68f400-e1de-4f2d-b9a9-68a5ec7e02ec" />
+  <Project Path="OpalHands.Web/OpalHands.Web.csproj" Id="72f749be-ae7b-4f17-ab77-4e93f8c37eb4" />
 </Solution>

@@ -87,6 +87,7 @@ namespace Human_Resources.Data
             new AccessModule { Id = 3, Description = "Company Staff", IsChecked = false },
             new AccessModule { Id = 4, Description = "Post Documents", IsChecked = false },
             new AccessModule { Id = 5, Description = "Expired Docs", IsChecked = false },
+            new AccessModule { Id = 5, Description = "Prospects", IsChecked = false },
             new AccessModule { Id = 6, Description = "Setup", IsChecked = false }
         };
 
