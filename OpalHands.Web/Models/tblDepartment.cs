@@ -2,7 +2,7 @@
 
 namespace OpalHands.Web.Models
 {
-    public class Department
+    public class tblDepartment
     {
         [Key]
         public int Id { get; set; }

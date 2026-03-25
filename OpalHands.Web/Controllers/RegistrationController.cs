@@ -46,6 +46,9 @@ namespace OpalHands.Web.Controllers
         // GET: Registration/Create
         public IActionResult Create()
         {
+            // Cargamos los SelectLists para que nazcan con la página
+            ViewBag.Departments = new SelectList(_context.tblDepartment, "Id", "Description");
+            ViewBag.States = new SelectList(_context.tblGeoState, "Id", "Description");
             return View();
         }
 
@@ -54,32 +57,45 @@ namespace OpalHands.Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Applicants applicant)
+        public async Task<IActionResult> Create(tblApplicants applicant)
         {
-            // 1. EL FILTRO DE SEGURIDAD: ¿Ya existe el correo?
+            // --- PASO B: LIMPIEZA DE HONOR (Mayúsculas y sin tildes) ---
+            applicant.FirstName = CleanText(applicant.FirstName);
+            applicant.LastName = CleanText(applicant.LastName);
+            applicant.Address = CleanText(applicant.Address);
+            // El Email lo pasamos a minúsculas por estándar de sistemas
+            if (applicant.Email != null) applicant.Email = applicant.Email.ToLower().Trim();
+
+            // 1. VERIFICACIÓN DE SEGURIDAD
             var exists = _context.tblApplicants.Any(a => a.Email == applicant.Email);
 
             if (exists)
             {
-                // Si ya existe, enviamos el mensaje que tú definiste
-                ModelState.AddModelError("Email", "Estamos analizando su propuesta, lo contactaremos a través de su correo electrónico.");
+                ModelState.AddModelError("Email", "We are analyzing your application; we will contact you via email. / Estamos analizando su propuesta; lo contactaremos a través de su correo electrónico.");
+
+                // Recargamos las listas por si el usuario tiene que corregir
+                ViewBag.Departments = new SelectList(_context.tblDepartment, "Id", "Description");
+                ViewBag.States = new SelectList(_context.tblGeoState, "Id", "Description");
                 return View(applicant);
             }
 
             if (ModelState.IsValid)
             {
-                // 2. AUTOMATIZACIÓN: Campos que el usuario no llena
+                // 2. AUTOMATIZACIÓN DE CAMPOS
                 applicant.DateCreated = DateTime.Now;
-                applicant.Status = 1; // 1 = Nuevo / Pendiente
+                applicant.Status = 1; // 1 = Nuevo
 
-                // 3. GUARDADO ATÓMICO: Solo si pasó todas las reglas
+                // 3. GUARDADO EN AZURE
                 _context.Add(applicant);
                 await _context.SaveChangesAsync();
 
-                // 4. EL ENTREGABLE: Redirigir a la lista de documentos según el departamento
+                // 4. REDIRECCIÓN (A la siguiente etapa)
                 return RedirectToAction("Requirements", new { id = applicant.idDepartment });
             }
 
+            // Si algo falla, recargamos las listas para no romper la vista
+            ViewBag.Departments = new SelectList(_context.tblDepartment, "Id", "Description");
+            ViewBag.States = new SelectList(_context.tblGeoState, "Id", "Description");
             return View(applicant);
         }
 
@@ -184,6 +200,41 @@ namespace OpalHands.Web.Controllers
 
             // Devolvemos la respuesta como un dato simple (isDuplicate: true o false)
             return Json(new { isDuplicate = exists });
+        }
+
+        [HttpGet]
+        public IActionResult GetCities(int stateId)
+        {
+            // Buscamos solo las ciudades que pertenecen al estado seleccionado
+            var cities = _context.tblGeoCity
+                .Where(c => c.IdGeoState == stateId)
+                .Select(c => new { id = c.Id, description = c.Description })
+                .ToList();
+
+            return Json(cities);
+        }
+
+        // El "?" en (string? text) le dice a C# que el texto puede ser nulo
+        private string CleanText(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+
+            // 1. Normalizar para separar letras de tildes
+            string stFormD = text.Normalize(System.Text.NormalizationForm.FormD);
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            foreach (char ch in stFormD)
+            {
+                // Solo conservamos caracteres que no sean marcas de acento (tildes)
+                System.Globalization.UnicodeCategory uc = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch);
+                if (uc != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(ch);
+                }
+            }
+
+            // 2. Retornar en Mayúsculas y limpio
+            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC).ToUpper().Trim();
         }
     }
 }

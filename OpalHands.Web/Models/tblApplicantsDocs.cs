@@ -2,7 +2,7 @@
 
 namespace OpalHands.Web.Models
 {
-    public class ApplicantsDocs
+    public class tblApplicantsDocs
     {
         [Key]
         public int Id { get; set; }
@@ -11,6 +11,6 @@ namespace OpalHands.Web.Models
         public int IdDepartment { get; set; } // La llave que acabas de agregar
 
         [Required]
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

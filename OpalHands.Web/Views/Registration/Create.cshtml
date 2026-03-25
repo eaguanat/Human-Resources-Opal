@@ -1,10 +1,17 @@
-﻿@model OpalHands.Web.Models.Applicants
+﻿@model OpalHands.Web.Models.tblApplicants
 
 @{
     ViewData["Title"] = "Registro / Registration";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    /* Obliga visualmente a que todo se vea en mayúsculas en los inputs */
+    .required-field {
+        text-transform: uppercase;
+    }
+</style>
 
 <div class="container mt-4 shadow-sm p-4 bg-white rounded">
     <div class="text-center mb-4">
@@ -45,10 +52,9 @@
             <div class="row mb-3">
                 <div class="col-md-12">
                     <label class="form-label fw-bold">Position you are applying for / Posición a la que aplica <span class="text-danger">*</span></label>
-                    <select asp-for="idDepartment" id="ddlDept" class="form-select border-success shadow-sm">
-                        <option value="">-- Select Option / Seleccione Opción --</option>
-                        <option value="1">Nursing / Enfermería</option>
-                        <option value="2">Long Term Care / Cuidado a Largo Plazo</option>
+                    <select asp-for="idDepartment" id="ddlDept" class="form-select border-success shadow-sm"
+                            asp-items="@(ViewBag.Departments as SelectList)">
+                        <option value="">-- Select Position / Seleccione Posición --</option>
                     </select>
                 </div>
             </div>
@@ -90,15 +96,30 @@
             <div class="row mb-4">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">State / Estado <span class="text-danger">*</span></label>
-                    <input asp-for="idGeoState" class="form-control required-field" placeholder="Ex: FL" />
+                    <div class="input-group">
+                        <select asp-for="idGeoState" id="ddlState" class="form-select required-field" asp-items="@(ViewBag.States as SelectList)">
+                            <option value="">-- State --</option>
+                        </select>
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
                     <label class="form-label fw-bold">City / Ciudad <span class="text-danger">*</span></label>
-                    <input asp-for="idGeoCity" class="form-control required-field" />
+                    <div class="input-group">
+                        <select asp-for="idGeoCity" id="ddlCity" class="form-select required-field">
+                            <option value="">-- City --</option>
+                        </select>
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
                 </div>
+
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Zip Code <span class="text-danger">*</span></label>
-                    <input asp-for="ZipCode" class="form-control required-field" />
+                    <div class="input-group">
+                        <input asp-for="ZipCode" class="form-control required-field" />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
                 </div>
             </div>
 
@@ -115,6 +136,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            
         // 1. VERIFICACIÓN DE EMAIL
         $('#btnVerify').click(function() {
         var email = $('#txtEmail').val();
@@ -127,7 +149,7 @@
 
         $.get('/Registration/CheckEmail', { email: email }, function(data) {
         if(data.isDuplicate) {
-        $('#emailMessage').text("Estamos analizando su propuesta, lo contactaremos a través de su correo electrónico.").show();
+        $('#emailMessage').text("We are analyzing your application; we will contact you via email. / Estamos analizando su propuesta; lo contactaremos a través de su correo electrónico.").show();
         $('#secondStep').hide();
         } else {
         $('#emailMessage').hide();
@@ -138,26 +160,51 @@
         });
         });
 
-        // 2. SISTEMA DE CHECKS VERDES Y HABILITAR BOTÓN FINAL
-        $('.required-field, #ddlDept').on('input change', function() {
-        var input = $(this);
-        var group = input.closest('.input-group');
-        var icon = group.find('.input-group-text');
+        // 2. CASCADA DE CIUDADES
+        $('#ddlState').change(function() {
+        var stateId = $(this).val();
+        var $citySelect = $('#ddlCity');
+        $citySelect.empty().append('<option value="">-- Loading / Cargando... --</option>');
 
-        if(input.val() !== "") {
+        if (stateId) {
+        $.get('/Registration/GetCities', { stateId: stateId }, function(data) {
+        $citySelect.empty().append('<option value="">-- Select City / Seleccione --</option>');
+        $.each(data, function(i, city) {
+        $citySelect.append($('<option>', { value: city.id, text: city.description }));
+        });
+        });
+        } else {
+        $citySelect.empty().append('<option value="">-- City --</option>');
+        }
+        });
+
+        // 3. VALIDACIÓN VISUAL (Checks Verdes)
+        $('.required-field, #ddlDept, #ddlState, #ddlCity').on('input change blur', function() {
+        var input = $(this);
+        var container = input.closest('.col-md-4, .col-md-12, .input-group');
+        var icon = container.find('.bi-check-circle-fill').parent();
+
+        if(input.val() !== "" && input.val() !== null) {
         icon.removeClass('d-none');
         } else {
         icon.addClass('d-none');
         }
-
-        // Verificar si TODO está lleno para habilitar el botón final
         validateAll();
+        });
+
+        // 4. LIMPIEZA AUTOMÁTICA (MAYÚSCULAS Y SIN TILDES)
+        $('.required-field').on('blur', function() {
+        var str = $(this).val();
+        if (str) {
+        var cleanStr = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        $(this).val(cleanStr);
+        }
         });
 
         function validateAll() {
         var allFilled = true;
         $('.required-field').each(function() {
-        if($(this).val() === "") allFilled = false;
+        if($(this).val() === "" || $(this).val() === null) allFilled = false;
         });
         if($('#ddlDept').val() === "") allFilled = false;
 
@@ -169,4 +216,7 @@
         }
         });
     </script>
+}
+}
+}
 }
