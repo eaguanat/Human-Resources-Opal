@@ -16,5 +16,6 @@ namespace OpalHands.Web.Data
         public DbSet<tblDepartment> tblDepartment { get; set; }
         public DbSet<tblGeoState> tblGeoState { get; set; }
         public DbSet<tblGeoCity> tblGeoCity { get; set; }
+        public DbSet<tblCompany> tblCompany { get; set; }
     }
 }

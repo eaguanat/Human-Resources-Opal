@@ -18,9 +18,9 @@ using Human_Resources.Data; // Para que reconozca tu carpeta y la clase
 
 namespace Human_Resources.Forms
 {
-    public partial class frmApplicantsDocs : Page
+    public partial class frmtblApplicantsDocs : Page
     {
-        public frmApplicantsDocs()
+        public frmtblApplicantsDocs()
         {
             InitializeComponent();
             // Cargo el Grid al iniciar el formulario
@@ -63,7 +63,7 @@ namespace Human_Resources.Forms
             if (cmbFiltroDpto.SelectedValue != null)
             {
                 int idDpt = Convert.ToInt32(cmbFiltroDpto.SelectedValue);
-                ClassApplicantsDocs objetoNegocio = new ClassApplicantsDocs();
+                ClasstblApplicantsDocs objetoNegocio = new ClasstblApplicantsDocs();
                 DataTable tablaDatos = objetoNegocio.Listar(idDpt);
                 if (tablaDatos != null)
                 {
@@ -160,7 +160,7 @@ namespace Human_Resources.Forms
             }
 
             // 2. Preparar el objeto con los datos de la pantalla
-            ClassApplicantsDocs objeto = new ClassApplicantsDocs();
+            ClasstblApplicantsDocs objeto = new ClasstblApplicantsDocs();
             objeto.Id = idSeleccionado; // Si es 0, SQL lo ignorará en el Insert. Si es > 0, SQL lo usará para el Update.
             objeto.IdDepartment = Convert.ToInt32(cmbFiltroDpto.SelectedValue);
             objeto.Description = txtDescription.Text.Trim();
@@ -222,7 +222,7 @@ namespace Human_Resources.Forms
 
             if (answer == MessageBoxResult.Yes)
             {
-                ClassApplicantsDocs objeto = new ClassApplicantsDocs();
+                ClasstblApplicantsDocs objeto = new ClasstblApplicantsDocs();
 
                 // 5. Proceder a eliminar
                 if (objeto.Eliminar(idAEliminar))
@@ -301,7 +301,7 @@ namespace Human_Resources.Forms
 
                     // 5. LISTADO DE ESTADOS
                     int idDpt = Convert.ToInt32(cmbFiltroDpto.SelectedValue);
-                    ClassApplicantsDocs obj = new ClassApplicantsDocs();
+                    ClasstblApplicantsDocs obj = new ClasstblApplicantsDocs();
                     DataTable dt = obj.Listar(idDpt);
 
                     if (dt != null)

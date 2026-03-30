@@ -191,16 +191,16 @@ namespace Human_Resources
 
 
         // PROPECTS
-        private void BtnFrmApplicants_Click(object sender, RoutedEventArgs e)
+        private void BtnFrmtblApplicants_Click(object sender, RoutedEventArgs e)
         {
             // Este abrirá la lista de gente que aplicó desde la Web
-//            AbrirFormulario("Applicants", new Forms.frmApplicants());
+//            AbrirFormulario("tblApplicants", new Forms.frmtblApplicants());
         }
 
         private void BtnFrmProspectsDocs_Click(object sender, RoutedEventArgs e)
         {
             // Este es para que usted configure la lista de documentos (tblDocsRequired)
-            AbrirFormulario("Prospects Documents", new Forms.frmApplicantsDocs());
+            AbrirFormulario("Prospects Documents", new Forms.frmtblApplicantsDocs());
         }
 
 

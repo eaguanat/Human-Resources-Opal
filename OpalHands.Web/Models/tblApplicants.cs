@@ -31,5 +31,9 @@ namespace OpalHands.Web.Models
         public int? Status { get; set; }
         public DateTime? DateCreated { get; set; }
         public DateTime? LastLogin { get; set; }
+
+        // --- LAS NUEVAS ADICIONES ---
+        public string? ServiceZipCodes { get; set; }
+        public string? Observations { get; set; }
     }
 }

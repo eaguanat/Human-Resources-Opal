@@ -123,6 +123,21 @@
                 </div>
             </div>
 
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Service Areas (Zip Codes) / Áreas de Servicio <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input asp-for="ServiceZipCodes" class="form-control required-field" placeholder="Example: 33625, 33626..." />
+                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
+                    </div>
+                    <small class="text-muted">List the Zip Codes you can cover / Liste los Zip Codes que puede cubrir.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Additional Observations / Observaciones Adicionales</label>
+                    <textarea asp-for="Observations" class="form-control required-field" rows="2" placeholder="Brief notes..."></textarea>
+                </div>
+            </div>
+
             <div class="text-end">
                 <button type="submit" id="btnFinalize" class="btn btn-secondary btn-lg px-5 shadow" disabled>
                     Finish Application / Finalizar Aplicación
@@ -181,7 +196,7 @@
         // 3. VALIDACIÓN VISUAL (Checks Verdes)
         $('.required-field, #ddlDept, #ddlState, #ddlCity').on('input change blur', function() {
         var input = $(this);
-        var container = input.closest('.col-md-4, .col-md-12, .input-group');
+        var container = input.closest('.col-md-4, .col-md-12, .col-md-6, .input-group');
         var icon = container.find('.bi-check-circle-fill').parent();
 
         if(input.val() !== "" && input.val() !== null) {
@@ -203,9 +218,12 @@
 
         function validateAll() {
         var allFilled = true;
+        // Solo validamos los campos que tienen la clase required-field
         $('.required-field').each(function() {
         if($(this).val() === "" || $(this).val() === null) allFilled = false;
         });
+            
+        // También validamos el departamento
         if($('#ddlDept').val() === "") allFilled = false;
 
         if(allFilled) {
@@ -216,7 +234,4 @@
         }
         });
     </script>
-}
-}
-}
 }

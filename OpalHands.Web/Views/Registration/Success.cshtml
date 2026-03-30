@@ -1,0 +1,87 @@
+﻿@{
+    ViewData["Title"] = "Success / Registro Exitoso";
+    var applicantName = TempData["ApplicantName"] ?? "Applicant";
+    var applicantEmail = TempData["ApplicantEmail"] ?? "your registered email";
+    var companyId = TempData["CompanyId"]; // Recibimos el ID
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-10">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="bg-success" style="height: 10px;"></div>
+                
+                <div class="card-body p-5 text-center">
+                    
+                    <div class="mb-4">
+                        @if (companyId != null)
+                        {
+                            <img src="@Url.Action("GetCompanyLogo", "Registration", new { id = companyId })" 
+                                 alt="Logo" style="max-height: 100px; width: auto;" class="mb-3" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 4.5rem;"></i>
+                        }
+                    </div>
+
+                    <h2 class="fw-bold text-dark mb-2">Application Received!</h2>
+                    <h3 class="text-success fw-normal mb-4">¡Solicitud Recibida, @applicantName!</h3>
+
+                    <div class="px-md-4">
+                        <p class="fs-5 text-muted mb-4">
+                            Your professional profile has been successfully registered. 
+                            We appreciate your interest in joining <strong>Opal Hands Home Health Care</strong>.
+                        </p>
+                        
+                        <p class="fs-6 text-secondary fst-italic mb-4">
+                            Su perfil profesional ha sido registrado exitosamente. 
+                            Agradecemos su interés en formar parte de <strong>Opal Hands Home Health Care</strong>.
+                        </p>
+
+                        <div class="alert alert-light border-start border-success border-4 shadow-sm py-4">
+                            <div class="d-flex align-items-center justify-content-center mb-2">
+                                <i class="bi bi-envelope-paper-heart text-success fs-3 me-3"></i>
+                                <strong class="fs-5">Next Steps / Próximos Pasos</strong>
+                            </div>
+                            <p class="mb-2 text-dark">
+                                Please check your email: <span class="badge bg-primary fs-6">@applicantEmail</span>
+                            </p>
+                            <p class="small text-muted px-3">
+                                We have sent the list of **Required Documents** to your inbox.
+                                <br />
+                                <span class="fst-italic">Hemos enviado la lista de **Documentos Requeridos** a su bandeja de entrada.</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <a href="/" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm fw-bold">
+                            Done / Finalizar
+                        </a>
+                    </div>
+
+                    <div class="mt-5 pt-3 border-top text-secondary small">
+                        Opal Hands Home Health Care &copy; @DateTime.Now.Year
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    .card { animation: fadeIn 0.8s ease-out; }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>

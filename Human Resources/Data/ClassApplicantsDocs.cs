@@ -10,7 +10,7 @@ using System.Windows;
 
 namespace Human_Resources.Data
 {
-    public class ClassApplicantsDocs
+    public class ClasstblApplicantsDocs
     {
         // Propiedades
         public int Id { get; set; }
@@ -25,7 +25,7 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "SELECT Id, Description FROM tblApplicantsDocs " +
+                    string query = "SELECT Id, Description FROM tbltblApplicantsDocs " +
                                    "WHERE idDepartment = " + idDpt + " " +
                                    "ORDER BY Description";
                     SqlDataAdapter da = new SqlDataAdapter(query, con);
@@ -47,7 +47,7 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "INSERT INTO tblApplicantsDocs (idDepartment, Description) VALUES (@idDepartment, @desc)";
+                    string query = "INSERT INTO tbltblApplicantsDocs (idDepartment, Description) VALUES (@idDepartment, @desc)";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@idDepartment", this.IdDepartment);
                     cmd.Parameters.AddWithValue("@desc", this.Description);
@@ -69,7 +69,7 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "UPDATE tblApplicantsDocs SET  idDepartment = @idDepartment, Description = @desc WHERE Id = @id";
+                    string query = "UPDATE tbltblApplicantsDocs SET  idDepartment = @idDepartment, Description = @desc WHERE Id = @id";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@idDepartment", this.IdDepartment);
                     cmd.Parameters.AddWithValue("@desc", this.Description);
@@ -92,7 +92,7 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "DELETE FROM tblApplicantsDocs WHERE Id = @id";
+                    string query = "DELETE FROM tbltblApplicantsDocs WHERE Id = @id";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@id", idEliminar);
                     con.Open();
