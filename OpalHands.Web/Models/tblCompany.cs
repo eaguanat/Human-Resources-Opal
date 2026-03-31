@@ -30,5 +30,13 @@ namespace OpalHands.Web.Models
 
         // Aquí guardamos el Logo que ya tienes en la base de datos
         public byte[]? Logo { get; set; }
+
+        // --- EL CARTERO ---
+        public string? MailServer { get; set; }
+        public int? MailPort { get; set; }
+        public string? MailUsername { get; set; }
+        public string? MailPassword { get; set; }
+        public bool? EnableSSL { get; set; }
+        public string? SenderName { get; set; }
     }
 }

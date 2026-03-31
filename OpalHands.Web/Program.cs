@@ -1,5 +1,8 @@
+using OpalHands.Web.Services;
+using QuestPDF.Infrastructure;
 using Microsoft.EntityFrameworkCore; // NUEVO: Necesario para usar SQL Server
 using OpalHands.Web.Data;          // NUEVO: Para encontrar tu ApplicationDbContext
+
 
 namespace OpalHands.Web
 {
@@ -7,7 +10,13 @@ namespace OpalHands.Web
     {
         public static void Main(string[] args)
         {
+            // Configuracion pdf
+            QuestPDF.Settings.License = LicenseType.Community;
+            
             var builder = WebApplication.CreateBuilder(args);
+
+            // Add Cartero 
+            builder.Services.AddScoped<EmailService>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

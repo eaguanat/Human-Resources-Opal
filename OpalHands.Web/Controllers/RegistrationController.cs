@@ -1,24 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OpalHands.Web.Data;
 using OpalHands.Web.Models;
+using OpalHands.Web.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OpalHands.Web.Controllers
 {
     public class RegistrationController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly EmailService _emailService; // <--- Agregar esta línea
 
-        public RegistrationController(ApplicationDbContext context)
+        public RegistrationController(ApplicationDbContext context, EmailService emailService) // <--- Agregar aquí también
         {
             _context = context;
+            _emailService = emailService;
         }
 
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.tblApplicants.ToListAsync());
@@ -47,7 +51,7 @@ namespace OpalHands.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(tblApplicants applicant)
         {
-            // --- PASO B: LIMPIEZA DE HONOR ---
+            // --- PASO B: LIMPIEZA DE HONOR (INTACTA) ---
             applicant.FirstName = CleanText(applicant.FirstName);
             applicant.LastName = CleanText(applicant.LastName);
             applicant.Address = CleanText(applicant.Address);
@@ -56,7 +60,7 @@ namespace OpalHands.Web.Controllers
 
             if (applicant.Email != null) applicant.Email = applicant.Email.ToLower().Trim();
 
-            // 1. VERIFICACIÓN DE SEGURIDAD
+            // 1. VERIFICACIÓN DE SEGURIDAD (INTACTA)
             var exists = _context.tblApplicants.Any(a => a.Email == applicant.Email);
 
             if (exists)
@@ -69,17 +73,36 @@ namespace OpalHands.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                // 2. GUARDADO EN AZURE
+                // 2. GUARDADO EN AZURE (INTACTO)
                 _context.Add(applicant);
                 await _context.SaveChangesAsync();
 
-                // 3. BUSCAMOS DATOS DE EMPRESA (CIRUGÍA AQUÍ)
-                var company = await _context.tblCompany.FirstOrDefaultAsync();
+                // 3. --- INICIO DE LA CIRUGÍA DEL CARTERO ---
+                try
+                {
+                    // Combinamos nombre y apellido para el PDF
+                    string fullNombre = $"{applicant.FirstName} {applicant.LastName}";
 
-                // Pasamos datos ligeros por TempData para no romper el protocolo HTTP
+                    // Llamamos al servicio (Correo + PDF)
+                    await _emailService.SendWelcomeEmailWithPdfAsync(
+                        applicant.Email ?? "",
+                        fullNombre,
+                        applicant.idDepartment ?? 0
+                    );
+                }
+                catch (Exception ex)
+                {
+                    // Si el correo falla, registramos el error en la consola de VS
+                    // Pero permitimos que el usuario vea la pantalla de éxito porque ya se guardó.
+                    System.Diagnostics.Debug.WriteLine("Error enviando correo: " + ex.Message);
+                }
+                // --- FIN DE LA CIRUGÍA ---
+
+                // 4. DATOS PARA LA VISTA DE ÉXITO (INTACTO)
+                var company = await _context.tblCompany.FirstOrDefaultAsync();
                 TempData["ApplicantName"] = applicant.FirstName;
                 TempData["ApplicantEmail"] = applicant.Email;
-                TempData["CompanyId"] = company?.id; // Solo pasamos el ID
+                TempData["CompanyId"] = company?.id;
 
                 return RedirectToAction(nameof(Success));
             }
