@@ -1,0 +1,68 @@
+﻿@model OpalHands.Web.Models.tblCompany
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-uppercase" style="color: #0B8FB1; letter-spacing: 4px;">Get in Touch</h1>
+        <div class="brand-divider mx-auto" style="width: 80px;"></div>
+        <p class="text-muted mt-3 fs-5">We are here to help you and your family. Reach out to us today.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-4 custom-about-card">
+                <div class="icon-circle mx-auto mb-3">
+                    <i class="bi bi-telephone-outbound fs-2 text-white"></i>
+                </div>
+                <h4 class="fw-bold" style="color: #0B8FB1;">Phone Number</h4>
+                <a href="tel:@Model?.Phone" class="text-decoration-none fs-5 text-dark fw-bold">
+                    @(string.IsNullOrEmpty(Model?.Phone) ? "Coming Soon" : Model.Phone)
+                </a>
+                <p class="text-muted small mt-2">Available for your inquiries.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-4 custom-about-card">
+                <div class="icon-circle mx-auto mb-3">
+                    <i class="bi bi-envelope-at fs-2 text-white"></i>
+                </div>
+                <h4 class="fw-bold" style="color: #0B8FB1;">Email Address</h4>
+                <a href="mailto:@Model?.Email" class="text-decoration-none fs-5 text-dark fw-bold">
+                    @(string.IsNullOrEmpty(Model?.Email) ? "info@opalhands.com" : Model.Email.ToLower())
+                </a>
+                <p class="text-muted small mt-2">Send us your questions anytime.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-4 custom-about-card">
+                <div class="icon-circle mx-auto mb-3">
+                    <i class="bi bi-geo-alt fs-2 text-white"></i>
+                </div>
+                <h4 class="fw-bold" style="color: #0B8FB1;">Our Location</h4>
+        
+                <p class="fs-6 text-dark fw-bold px-2 mb-1">
+                    @Model?.Address
+                </p>
+        
+                <p class="text-dark mb-0" style="font-size: 1.1rem;">
+                    @ViewBag.CityName, @ViewBag.StateName @Model?.ZipCode
+                </p>
+
+                <p class="text-muted small mt-2">Professional Care at Home.</p>
+            </div>
+        </div>
+    </div>
+
+    @* BOTÓN DE ACCIÓN RÁPIDA *@
+    <div class="text-center mt-5">
+        <p class="text-muted">Interested in joining our team?</p>
+        <a asp-controller="Registration" asp-action="Create" class="btn btn-lg text-white px-5 shadow-sm"
+               style="background: linear-gradient(to right, #1CE8FE, #0B8FB1); border-radius: 30px; font-weight: 700;">
+            Apply Online Now
+        </a>
+    </div>
+</div>

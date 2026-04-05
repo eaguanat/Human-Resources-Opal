@@ -22,10 +22,12 @@ namespace OpalHands.Web.Controllers
             _emailService = emailService;
         }
 
-        
-        public async Task<IActionResult> Index()
+
+        // BLOQUEO DE SEGURIDAD: Nadie puede ver la lista de aplicantes
+        public IActionResult Index()
         {
-            return View(await _context.tblApplicants.ToListAsync());
+            // Redirigimos al Home para que no vean la tabla de datos
+            return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> Details(int? id)

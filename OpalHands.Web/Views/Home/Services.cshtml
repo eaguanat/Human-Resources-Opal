@@ -1,0 +1,89 @@
+﻿@{
+    ViewData["Title"] = "Our Services | Opal Hands";
+}
+
+@* --- CABECERA DE LA PÁGINA (HERO PEQUEÑO) --- *@
+<div class="bg-cyan py-5 text-white shadow-sm">
+    <div class="container text-center py-3">
+        <h1 class="display-4 fw-bold">Comprehensive Care Solutions</h1>
+        <p class="lead opacity-90">Professional health services delivered in the comfort of your home.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light rounded-pill px-4 mt-3">
+            <i class="bi bi-arrow-left me-2"></i>Back to Home
+        </a>
+    </div>
+</div>
+
+@* --- LISTADO DETALLADO (ESTILO MARANATHA) --- *@
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row g-5">
+            
+            <div class="col-lg-4">
+                <div class="p-4 border-start border-4 border-cyan h-100 bg-light-soft rounded-end shadow-sm">
+                    <h4 class="fw-bold mb-4" style="color: #0B8FB1;">
+                        <i class="bi bi-capsule me-2"></i>Skilled Nursing
+                    </h4>
+                    <ul class="list-unstyled lh-lg text-muted">
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Wound Care Management</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>IV Therapy & Injections</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Post-Surgical Care</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Medication Management</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Vital Signs Monitoring</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="p-4 border-start border-4 border-cyan h-100 bg-light-soft rounded-end shadow-sm">
+                    <h4 class="fw-bold mb-4" style="color: #0B8FB1;">
+                        <i class="bi bi-activity me-2"></i>Therapy Services
+                    </h4>
+                    <ul class="list-unstyled lh-lg text-muted">
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Physical Therapy (PT)</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Occupational Therapy (OT)</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Speech & Language Therapy</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Pain Management</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Mobility Assistance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="p-4 border-start border-4 border-cyan h-100 bg-light-soft rounded-end shadow-sm">
+                    <h4 class="fw-bold mb-4" style="color: #0B8FB1;">
+                        <i class="bi bi-house-heart me-2"></i>In-Home Support
+                    </h4>
+                    <ul class="list-unstyled lh-lg text-muted">
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Personal Care & Hygiene</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Daily Living Assistance</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Companion Services</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Respite Care for Families</li>
+                        <li class="border-bottom py-2"><i class="bi bi-check2 text-cyan me-2"></i>Nutritional Support</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        @* SECCIÓN DEL BOTÓN CONTACT US *@
+        <div class="text-center mt-5">
+            <p class="text-muted">Need a specific service not listed here?</p>
+    
+            @* El secreto está en asp-action="Contact" *@
+            <a asp-controller="Home" 
+            asp-action="Contact" 
+            class="btn btn-lg text-white px-5 shadow-sm" 
+            style="background: linear-gradient(to right, #1CE8FE, #0B8FB1); border-radius: 30px; font-weight: 700; text-transform: uppercase;">
+            Contact Us Now
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .bg-cyan { background-color: #0B8FB1; }
+    .text-cyan { color: #1CE8FE; }
+    .border-cyan { border-color: #1CE8FE !important; }
+    .bg-light-soft { background-color: #fcfdfe; }
+</style>
