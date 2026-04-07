@@ -53,7 +53,7 @@ namespace OpalHands.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(tblApplicants applicant)
         {
-            // --- PASO B: LIMPIEZA DE HONOR (INTACTA) ---
+            // --- PASO B: LIMPIEZA DE HONOR (Mantener igual) ---
             applicant.FirstName = CleanText(applicant.FirstName);
             applicant.LastName = CleanText(applicant.LastName);
             applicant.Address = CleanText(applicant.Address);
@@ -62,7 +62,7 @@ namespace OpalHands.Web.Controllers
 
             if (applicant.Email != null) applicant.Email = applicant.Email.ToLower().Trim();
 
-            // 1. VERIFICACIÓN DE SEGURIDAD (INTACTA)
+            // 1. VERIFICACIÓN DE SEGURIDAD
             var exists = _context.tblApplicants.Any(a => a.Email == applicant.Email);
 
             if (exists)
@@ -75,17 +75,27 @@ namespace OpalHands.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                // 2. GUARDADO EN AZURE (INTACTO)
+                // ==========================================
+                // INICIO DE LA CIRUGÍA QUIRÚRGICA
+                // ==========================================
+
+                applicant.Status = 1; // 1 = Pendiente / Recibido
+                applicant.DateCreated = DateTime.Now; // Fecha y hora actual de Tampa
+
+                // El campo LastLogin ya no se toca porque lo eliminamos de la tabla
+
+                // ==========================================
+                // FIN DE LA CIRUGÍA
+                // ==========================================
+
+                // 2. GUARDADO EN AZURE
                 _context.Add(applicant);
                 await _context.SaveChangesAsync();
 
-                // 3. --- INICIO DE LA CIRUGÍA DEL CARTERO ---
+                // 3. ENVÍO DE CORREO (Mantener igual...)
                 try
                 {
-                    // Combinamos nombre y apellido para el PDF
                     string fullNombre = $"{applicant.FirstName} {applicant.LastName}";
-
-                    // Llamamos al servicio (Correo + PDF)
                     await _emailService.SendWelcomeEmailWithPdfAsync(
                         applicant.Email ?? "",
                         fullNombre,
@@ -94,13 +104,10 @@ namespace OpalHands.Web.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Si el correo falla, registramos el error en la consola de VS
-                    // Pero permitimos que el usuario vea la pantalla de éxito porque ya se guardó.
                     System.Diagnostics.Debug.WriteLine("Error enviando correo: " + ex.Message);
                 }
-                // --- FIN DE LA CIRUGÍA ---
 
-                // 4. DATOS PARA LA VISTA DE ÉXITO (INTACTO)
+                // 4. DATOS PARA LA VISTA DE ÉXITO
                 var company = await _context.tblCompany.FirstOrDefaultAsync();
                 TempData["ApplicantName"] = applicant.FirstName;
                 TempData["ApplicantEmail"] = applicant.Email;
@@ -109,6 +116,7 @@ namespace OpalHands.Web.Controllers
                 return RedirectToAction(nameof(Success));
             }
 
+            // Si algo falla, recargamos los combos
             ViewBag.Departments = new SelectList(_context.tblDepartment, "Id", "Description");
             ViewBag.States = new SelectList(_context.tblGeoState, "Id", "Description");
             return View(applicant);

@@ -7,26 +7,47 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
-    /* Obliga visualmente a que todo se vea en mayúsculas en los inputs */
     .required-field {
         text-transform: uppercase;
     }
+    
+    .btn-opal-interactive, .btn-opal-final {
+        transition: all 0.3s ease;
+        background-color: #ffffff;
+        border: 2px solid #546E7A;
+        color: #546E7A;
+    }
+
+        .btn-opal-interactive:hover, .btn-opal-final:not(:disabled):hover {
+            background-color: #0B8FB1 !important;
+            border-color: #0B8FB1 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(11, 143, 177, 0.3);
+        }
+
+        .btn-opal-final:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #ccc;
+        }
 </style>
 
 <div class="container mt-4 shadow-sm p-4 bg-white rounded">
     <div class="text-center mb-4">
-        <h2 class="text-success fw-bold">Opal Hands Home Health Care</h2>
+        <h2 class="fw-bold" style="color: #546E7A;">Opal Hands Home Health Care</h2>
         <h4 class="text-muted">Application Form / Formulario de Aplicación</h4>
     </div>
 
     <form asp-action="Create" id="mainForm">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <div class="card mb-4 border-primary">
-            <div class="card-header bg-primary text-white fw-bold">
+        @* STEP 1: ACCOUNT SETUP *@
+        <div class="card mb-4 border-0 shadow-sm">
+            <div class="p-3 text-white fw-bold" style="background-color: #0B8FB1; border-radius: 8px 8px 0 0;">
                 Step 1: Account Setup / Paso 1: Configuración de Cuenta
             </div>
-            <div class="card-body">
+            <div class="card-body border">
                 <div class="row align-items-end">
                     <div class="col-md-5">
                         <label class="form-label fw-bold">Email / Correo <span class="text-danger">*</span></label>
@@ -40,20 +61,21 @@
                         <input asp-for="Password" id="txtPass" type="password" class="form-control" />
                     </div>
                     <div class="col-md-3">
-                        <button type="button" id="btnVerify" class="btn btn-primary w-100 fw-bold">Verify / Verificar</button>
+                        <button type="button" id="btnVerify" class="btn fw-bold px-4 rounded-pill btn-opal-interactive w-100">
+                            Verify / Verificar
+                        </button>
                     </div>
                 </div>
                 <div id="emailMessage" class="mt-2 fw-bold text-danger" style="display:none;"></div>
             </div>
         </div>
 
+        @* STEP 2: PERSONAL INFO *@
         <div id="secondStep" style="display: none;">
-            
             <div class="row mb-3">
                 <div class="col-md-12">
-                    <label class="form-label fw-bold">Position you are applying for / Posición a la que aplica <span class="text-danger">*</span></label>
-                    <select asp-for="idDepartment" id="ddlDept" class="form-select border-success shadow-sm"
-                            asp-items="@(ViewBag.Departments as SelectList)">
+                    <label class="form-label fw-bold">Position / Posición a la que aplica <span class="text-danger">*</span></label>
+                    <select asp-for="idDepartment" id="ddlDept" class="form-select border-info shadow-sm" asp-items="@(ViewBag.Departments as SelectList)">
                         <option value="">-- Select Position / Seleccione Posición --</option>
                     </select>
                 </div>
@@ -62,84 +84,58 @@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">First Name / Nombre <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="FirstName" class="form-control required-field" />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <input asp-for="FirstName" class="form-control required-field" />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Last Name / Apellido <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="LastName" class="form-control required-field" />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <input asp-for="LastName" class="form-control required-field" />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Phone / Teléfono <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="Phone" class="form-control required-field" />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <input asp-for="Phone" class="form-control required-field" />
                 </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-12">
                     <label class="form-label fw-bold">Address / Dirección <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="Address" class="form-control required-field" />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <input asp-for="Address" class="form-control required-field" />
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-4">
                     <label class="form-label fw-bold">State / Estado <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <select asp-for="idGeoState" id="ddlState" class="form-select required-field" asp-items="@(ViewBag.States as SelectList)">
-                            <option value="">-- State --</option>
-                        </select>
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <select asp-for="idGeoState" id="ddlState" class="form-select required-field" asp-items="@(ViewBag.States as SelectList)">
+                        <option value="">-- State --</option>
+                    </select>
                 </div>
-
                 <div class="col-md-4">
                     <label class="form-label fw-bold">City / Ciudad <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <select asp-for="idGeoCity" id="ddlCity" class="form-select required-field">
-                            <option value="">-- City --</option>
-                        </select>
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <select asp-for="idGeoCity" id="ddlCity" class="form-select required-field">
+                        <option value="">-- City --</option>
+                    </select>
                 </div>
-
                 <div class="col-md-4">
                     <label class="form-label fw-bold">Zip Code <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="ZipCode" class="form-control required-field" />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
+                    <input asp-for="ZipCode" class="form-control required-field" />
                 </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Service Areas (Zip Codes) / Áreas de Servicio <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <input asp-for="ServiceZipCodes" class="form-control required-field" placeholder="Example: 33625, 33626..." />
-                        <span class="input-group-text d-none"><i class="bi bi-check-circle-fill text-success"></i></span>
-                    </div>
-                    <small class="text-muted">List the Zip Codes you can cover / Liste los Zip Codes que puede cubrir.</small>
+                    <label class="form-label fw-bold">Service Areas (Zip Codes) <span class="text-danger">*</span></label>
+                    <input asp-for="ServiceZipCodes" class="form-control required-field" placeholder="Example: 33625, 33626..." />
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Additional Observations / Observaciones Adicionales</label>
-                    <textarea asp-for="Observations" class="form-control required-field" rows="2" placeholder="Brief notes..."></textarea>
+                    <label class="form-label fw-bold">Observations / Observaciones</label>
+                    @* IMPORTANTE: Sin la clase required-field para que sea opcional *@
+                    <textarea asp-for="Observations" class="form-control" rows="2"></textarea>
                 </div>
             </div>
 
-            <div class="text-end">
-                <button type="submit" id="btnFinalize" class="btn btn-secondary btn-lg px-5 shadow" disabled>
+            <div class="text-end mt-4">
+                <button type="submit" id="btnFinalize" class="btn fw-bold px-5 btn-lg rounded-pill btn-opal-final" disabled>
                     Finish Application / Finalizar Aplicación
                 </button>
             </div>
@@ -151,24 +147,29 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            
-        // 1. VERIFICACIÓN DE EMAIL
+
+        // 1. EVENTO CLICK PARA VERIFICAR
         $('#btnVerify').click(function() {
         var email = $('#txtEmail').val();
         var pass = $('#txtPass').val();
 
-        if(email == "" || pass == "") {
-        alert("Please fill Email and Password / Por favor llene Email y Clave");
+        if(email === "" || pass === "") {
+        alert("Please enter Email and Password.");
         return;
         }
 
         $.get('/Registration/CheckEmail', { email: email }, function(data) {
         if(data.isDuplicate) {
-        $('#emailMessage').text("We are analyzing your application; we will contact you via email. / Estamos analizando su propuesta; lo contactaremos a través de su correo electrónico.").show();
-        $('#secondStep').hide();
+        $('#emailMessage').text("Email already registered / Correo ya registrado").show();
         } else {
         $('#emailMessage').hide();
-        $('#txtEmail, #txtPass, #btnVerify').prop('readonly', true).addClass('bg-light');
+                        
+        // BLOQUEO TOTAL PASO 1
+        $('#txtEmail, #txtPass').prop('readonly', true).addClass('bg-light');
+        $('#btnVerify').prop('disabled', true)
+        .text('Verified / Verificado')
+        .css('opacity', '0.7');
+                        
         $('#check-Email').removeClass('d-none');
         $('#secondStep').fadeIn();
         }
@@ -179,59 +180,43 @@
         $('#ddlState').change(function() {
         var stateId = $(this).val();
         var $citySelect = $('#ddlCity');
-        $citySelect.empty().append('<option value="">-- Loading / Cargando... --</option>');
+        $citySelect.empty().append('<option value="">-- Loading... --</option>');
 
         if (stateId) {
         $.get('/Registration/GetCities', { stateId: stateId }, function(data) {
-        $citySelect.empty().append('<option value="">-- Select City / Seleccione --</option>');
+        $citySelect.empty().append('<option value="">-- Select City --</option>');
         $.each(data, function(i, city) {
         $citySelect.append($('<option>', { value: city.id, text: city.description }));
         });
         });
-        } else {
-        $citySelect.empty().append('<option value="">-- City --</option>');
         }
         });
 
-        // 3. VALIDACIÓN VISUAL (Checks Verdes)
-        $('.required-field, #ddlDept, #ddlState, #ddlCity').on('input change blur', function() {
-        var input = $(this);
-        var container = input.closest('.col-md-4, .col-md-12, .col-md-6, .input-group');
-        var icon = container.find('.bi-check-circle-fill').parent();
+        // 3. FUNCIÓN DE VALIDACIÓN (ValidateAll)
+        function validateAll() {
+        var allFilled = true;
 
-        if(input.val() !== "" && input.val() !== null) {
-        icon.removeClass('d-none');
-        } else {
-        icon.addClass('d-none');
+        // Solo revisa los inputs con 'required-field' (las observaciones NO lo tienen)
+        $('.required-field').each(function() {
+        if($(this).val() === "" || $(this).val() === null) {
+        allFilled = false;
         }
+        });
+
+        // Revisar el departamento (Posición)
+        if($('#ddlDept').val() === "") {
+        allFilled = false;
+        }
+
+        // Activar/Desactivar botón
+        $('#btnFinalize').prop('disabled', !allFilled);
+        }
+
+        // 4. DISPARADORES DE VALIDACIÓN
+        $(document).on('input change blur', '.required-field, #ddlDept', function() {
         validateAll();
         });
 
-        // 4. LIMPIEZA AUTOMÁTICA (MAYÚSCULAS Y SIN TILDES)
-        $('.required-field').on('blur', function() {
-        var str = $(this).val();
-        if (str) {
-        var cleanStr = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-        $(this).val(cleanStr);
-        }
-        });
-
-        function validateAll() {
-        var allFilled = true;
-        // Solo validamos los campos que tienen la clase required-field
-        $('.required-field').each(function() {
-        if($(this).val() === "" || $(this).val() === null) allFilled = false;
-        });
-            
-        // También validamos el departamento
-        if($('#ddlDept').val() === "") allFilled = false;
-
-        if(allFilled) {
-        $('#btnFinalize').removeClass('btn-secondary').addClass('btn-success').prop('disabled', false);
-        } else {
-        $('#btnFinalize').addClass('btn-secondary').removeClass('btn-success').prop('disabled', true);
-        }
-        }
         });
     </script>
 }

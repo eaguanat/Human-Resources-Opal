@@ -19,14 +19,13 @@
                         because your family deserves the best—right where they need us.
                     </p>
                     
-                    <div class="d-flex flex-wrap gap-3 mt-4">
-                        @* EL BOTÓN PROTAGONISTA: Para que apliquen sin ir a la oficina *@
-                        <a asp-controller="Registration" asp-action="Create" class="btn btn-apply-hero btn-lg px-5 shadow-lg fw-bold animate__animated animate__pulse animate__infinite">
+                    <div class="d-flex gap-3">
+                        @* Cambiamos el color sólido por 'outline-light' *@
+                        <a asp-controller="Registration" asp-action="Create" class="btn btn-outline-light rounded-pill px-4 fw-bold">
                             <i class="bi bi-pencil-square me-2"></i>Apply Online Now
                         </a>
-    
-                        @* El botón secundario para ver servicios *@
-                        <a asp-controller="Home" asp-action="Services" class="btn btn-outline-light btn-lg px-4 fw-bold">
+
+                        <a asp-action="Services" class="btn btn-outline-light rounded-pill px-4 fw-bold">
                             Our Services
                         </a>
                     </div>
@@ -40,7 +39,7 @@
 @* --- SECCIÓN PREVIA DE SERVICIOS (EL TRIDENTE) --- *@
 <section id="services-overview" class="py-5 bg-white">
     <div class="container py-4 text-center">
-        <h2 class="fw-bold mb-5" style="color: #0B8FB1;">Professional Care at Home</h2>
+        <h2 class="fw-bold mb-5" style="color: #546E7A;">Professional Care at Home</h2>
         
         <div class="row g-4">
             
@@ -50,7 +49,7 @@
                     <div class="icon-box mb-3">
                         <i class="bi bi-heart-pulse fs-1 text-cyan"></i>
                     </div>
-                    <h3 class="fw-bold" style="color: #0B8FB1;">Skilled Nursing</h3>
+                    <h3 class="fw-bold" style="color: #546E7A;">Skilled Nursing</h3>
                     <p class="text-muted">
                         Professional medical care directed by registered nurses.
                     </p>
@@ -63,7 +62,7 @@
                     <div class="icon-box mb-3">
                         <i class="bi bi-person-walking fs-1 text-cyan"></i>
                     </div>
-                    <h3 class="fw-bold" style="color: #0B8FB1;">Rehabilitative Therapies</h3>
+                    <h3 class="fw-bold" style="color: #546E7A;">Rehabilitative Therapies</h3>
                     <p class="text-muted">
                         Physical, occupational, and speech therapy for independence.
                     </p>
@@ -76,7 +75,7 @@
                     <div class="icon-box mb-3">
                         <i class="bi bi-shield-check fs-1 text-cyan"></i>
                     </div>
-                    <h3 class="fw-bold" style="color: #0B8FB1;">Long-Term Support</h3>
+                    <h3 class="fw-bold" style="color: #546E7A;">Long-Term Support</h3>
                     <p class="text-muted">
                         Personalized assistance with daily activities and peace of mind.
                     </p>
