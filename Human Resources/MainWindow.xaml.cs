@@ -194,7 +194,7 @@ namespace Human_Resources
         private void BtnFrmtblApplicants_Click(object sender, RoutedEventArgs e)
         {
             // Este abrirá la lista de gente que aplicó desde la Web
-//            AbrirFormulario("tblApplicants", new Forms.frmtblApplicants());
+            AbrirFormulario("Prospects Applicant", new Forms.frmApplicants());
         }
 
         private void BtnFrmProspectsDocs_Click(object sender, RoutedEventArgs e)

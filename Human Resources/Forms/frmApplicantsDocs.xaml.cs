@@ -14,7 +14,8 @@ using System.Windows.Shapes;
 // using System.Windows.Markup; // No es necesario normalmente, pero puede ayudar en algunos casos de referencia.
 using Human_Resources.Forms;
 using System.Data; // Necesario para el DataTable
-using Human_Resources.Data; // Para que reconozca tu carpeta y la clase
+using Human_Resources.Data;
+using System.Security.Policy; // Para que reconozca tu carpeta y la clase
 
 namespace Human_Resources.Forms
 {
@@ -47,6 +48,7 @@ namespace Human_Resources.Forms
         private void ActualizarEstadoBotones(bool rtState)
         {
             dgListado.IsEnabled = rtState;
+            BtnAdd.IsEnabled = (cmbFiltroDpto.SelectedValue != null) ? true : false;
             BtnModify.IsEnabled = rtState;
             BtnDelete.IsEnabled = rtState;
             btnPrint.Visibility = rtState ? Visibility.Visible : Visibility.Collapsed;

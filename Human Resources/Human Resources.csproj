@@ -26,7 +26,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <InstallUrl>\\localhost\G%24\Mi unidad\Software_Deployments\Human_Resources\Installer\</InstallUrl>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -99,6 +99,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Forms\frmApplicants.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Forms\frmApplicantsDocs.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -203,6 +207,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\ClassApplicants.cs" />
     <Compile Include="Data\ClassApplicantsDocs.cs" />
     <Compile Include="Data\ClassBanks.cs" />
     <Compile Include="Data\ClassBanksMethod.cs" />
@@ -225,6 +230,9 @@
     <Compile Include="Data\ClassStaffDocsRequired.cs" />
     <Compile Include="Data\ClassStaffDocsAdditional.cs" />
     <Compile Include="Data\ClassFindStaffAdditional.cs" />
+    <Compile Include="Forms\frmApplicants.xaml.cs">
+      <DependentUpon>frmApplicants.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Forms\frmApplicantsDocs.xaml.cs">
       <DependentUpon>frmApplicantsDocs.xaml</DependentUpon>
     </Compile>

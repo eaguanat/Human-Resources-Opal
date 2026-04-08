@@ -1,7 +1,7 @@
 ﻿@model OpalHands.Web.Models.tblApplicants
 
 @{
-    ViewData["Title"] = "Registro / Registration";
+    ViewData["Title"] = "Registration / Registro";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -31,6 +31,12 @@
             cursor: not-allowed;
             border-color: #ccc;
         }
+
+    /* Resaltado suave para campos obligatorios */
+    .form-control:focus, .form-select:focus {
+        border-color: #1CE8FE;
+        box-shadow: 0 0 0 0.25 hide-rem rgba(28, 232, 254, 0.25);
+    }
 </style>
 
 <div class="container mt-4 shadow-sm p-4 bg-white rounded">
@@ -129,7 +135,6 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Observations / Observaciones</label>
-                    @* IMPORTANTE: Sin la clase required-field para que sea opcional *@
                     <textarea asp-for="Observations" class="form-control" rows="2"></textarea>
                 </div>
             </div>
@@ -148,6 +153,9 @@
     <script>
         $(document).ready(function() {
 
+        // Capturamos el overlay del Layout
+        const overlay = document.getElementById('loadingOverlay');
+
         // 1. EVENTO CLICK PARA VERIFICAR
         $('#btnVerify').click(function() {
         var email = $('#txtEmail').val();
@@ -158,13 +166,18 @@
         return;
         }
 
+        // Mostramos el spinner mientras verificamos el correo
+        if (overlay) overlay.classList.remove('d-none');
+
         $.get('/Registration/CheckEmail', { email: email }, function(data) {
+        // Ocultamos el spinner al recibir respuesta
+        if (overlay) overlay.classList.add('d-none');
+
         if(data.isDuplicate) {
         $('#emailMessage').text("Email already registered / Correo ya registrado").show();
         } else {
         $('#emailMessage').hide();
                         
-        // BLOQUEO TOTAL PASO 1
         $('#txtEmail, #txtPass').prop('readonly', true).addClass('bg-light');
         $('#btnVerify').prop('disabled', true)
         .text('Verified / Verificado')
@@ -173,6 +186,9 @@
         $('#check-Email').removeClass('d-none');
         $('#secondStep').fadeIn();
         }
+        }).fail(function() {
+        if (overlay) overlay.classList.add('d-none');
+        alert("Error connecting to server. Please try again.");
         });
         });
 
@@ -188,33 +204,38 @@
         $.each(data, function(i, city) {
         $citySelect.append($('<option>', { value: city.id, text: city.description }));
         });
+        validateAll(); // Re-validar al cargar ciudades
         });
         }
         });
 
-        // 3. FUNCIÓN DE VALIDACIÓN (ValidateAll)
+        // 3. FUNCIÓN DE VALIDACIÓN
         function validateAll() {
         var allFilled = true;
-
-        // Solo revisa los inputs con 'required-field' (las observaciones NO lo tienen)
         $('.required-field').each(function() {
         if($(this).val() === "" || $(this).val() === null) {
         allFilled = false;
         }
         });
-
-        // Revisar el departamento (Posición)
         if($('#ddlDept').val() === "") {
         allFilled = false;
         }
-
-        // Activar/Desactivar botón
         $('#btnFinalize').prop('disabled', !allFilled);
         }
 
         // 4. DISPARADORES DE VALIDACIÓN
         $(document).on('input change blur', '.required-field, #ddlDept', function() {
         validateAll();
+        });
+
+        // 5. ACTIVAR SPINNER AL ENVIAR FORMULARIO FINAL
+        $('#mainForm').submit(function() {
+        if (overlay) {
+        // Cambiamos el texto del spinner para este paso específico
+        const overlayText = overlay.querySelector('h5');
+        if (overlayText) overlayText.innerText = "Connecting with Opal Hands...";
+        overlay.classList.remove('d-none');
+        }
         });
 
         });
