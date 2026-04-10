@@ -10,18 +10,16 @@ namespace Human_Resources.Data
         {
             get
             {
-                // COMENTA ESTA LÍNEA CUANDO REALMENTE QUIERAS IR A AZURE
-                // Por ahora, esto obliga al sistema a usar LOCAL sí o sí.
-                return GetConnectionString("LocalDbConnection");
-
-                /* #if DEBUG
-                    return GetConnectionString("LocalDbConnection");
-                #else
-                    return GetConnectionString("AzureDbConnection");
-                #endif
-                */
+#if DEBUG
+            // Para que TÚ trabajes en tu PC con la base local:
+            return GetConnectionString("LocalDbConnection"); 
+#else
+                // Para cuando lo PUBLIQUES a tus socios en Azure:
+                return GetConnectionString("AzureDbConnection");
+#endif
             }
         }
+        
 
 
 

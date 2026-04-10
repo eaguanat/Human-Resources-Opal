@@ -84,20 +84,20 @@
                     <StackPanel Grid.Row="1" Grid.Column="0" Margin="5">
                         <TextBlock Text="Main Zip Code" FontSize="14" FontWeight="Bold"/>
                         <TextBox x:Name="txtZipCodeFilter"
-                                 Height="30" Margin="0,5"
+                                 Height="25" Margin="0,5" FontSize="14" 
                                  MaxLength="5" PreviewTextInput="NumberValidationTextBox"/>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="5">
                         <TextBlock Text="Service Zip Code" FontSize="14" FontWeight="Bold"/>
                         <TextBox x:Name="txtServiceZipCodesFilter"
-                                 Height="30" Margin="0,5"
+                                 Height="25" Margin="0,5" FontSize="14" 
                                  MaxLength="200" CharacterCasing="Upper"
                                  PreviewTextInput="ServiceZipCodesValidationTextBox"/>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.Column="2"  Grid.ColumnSpan="3" Margin="5">
                         <TextBlock Text="Applicant Name" FontSize="14" FontWeight="Bold"/>
                         <TextBox x:Name="txtFullNameFilter"
-                                 Height="30" Margin="0,5"
+                                 Height="25" Margin="0,5" FontSize="14" 
                                  MaxLength="100" CharacterCasing="Upper"/>
                     </StackPanel>
                 </Grid>

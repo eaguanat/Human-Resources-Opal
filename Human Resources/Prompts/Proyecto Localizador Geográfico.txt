@@ -1,0 +1,53 @@
+🗺️ Proyecto: Localizador Geográfico de Talento (HR-GeoLoc)
+1. Visión del Módulo
+Un formulario interactivo en WPF que permita filtrar y visualizar sobre un mapa de Google a los candidatos o empleados más cercanos a una dirección específica, ordenados por distancia real.
+
+2. Interfaz de Usuario (Diseño UI/UX)
+Header (Panel de Control):
+
+ComboBox [Origen]: Opciones "Staff" y "Applicants".
+
+TextBox [Dirección]: Entrada de texto para la dirección central (punto de referencia).
+
+ComboBox [Top X]: Cantidad de registros a mostrar (10, 20, 50, etc.).
+
+Botón [Buscar]: Dispara la geocodificación y la lógica de búsqueda.
+
+Botón [Salir]: Cierra la pestaña/formulario.
+
+Cuerpo Principal (Grid Proporcional):
+
+Lado Izquierdo (70%): Control WebView2 para renderizar el mapa de Google Maps con marcadores (pins).
+
+Lado Derecho (30%): DataGrid con listado de personas (Nombre, Dirección, Distancia en Millas/Km), ordenado de menor a mayor distancia.
+
+Footer:
+
+Botón [Home]: Regresar a la vista inicial o limpiar filtros.
+
+3. Cimientos de Datos (Base de Datos)
+Modificaciones en SQL Server:
+
+ALTER TABLE tblStaff ADD Latitude DECIMAL(9,6), Longitude DECIMAL(9,6);
+
+ALTER TABLE tblApplicants ADD Latitude DECIMAL(9,6), Longitude DECIMAL(9,6);
+
+Lógica de Cálculo: Implementar la Fórmula de Haversine en el query SQL para calcular distancias entre coordenadas de forma eficiente.
+
+4. Lógica de Negocio y Validación
+Validación de Origen: El proceso de guardado en los formularios de registro debe ser modificado. No se guarda basura; la dirección se valida contra la API de Google antes del INSERT.
+
+Clase Centralizadora (ClassGeocoding.cs):
+
+Función para convertir Dirección → Coordenadas (Geocoding).
+
+Manejo de la API Key de Google Cloud.
+
+Auto-guardado de coordenadas en la BD para evitar llamadas repetitivas (ahorro de costos y velocidad).
+
+5. Flujo de Trabajo (Próximos Pasos)
+Fase 1: Crear ClassGeocoding.cs y modificar el evento BtnSave_Click en los formularios actuales para capturar Lat/Long.
+
+Fase 2: Crear el nuevo formulario WPF con el diseño de mapa y lista.
+
+Fase 3: Desarrollar el Prompt para Google AI Studio para generar el "esqueleto" de la integración con WebView2 y JavaScript.

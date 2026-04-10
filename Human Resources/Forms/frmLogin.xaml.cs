@@ -38,6 +38,7 @@ namespace Human_Resources.Forms
             LoginFieldsPanel.Visibility = Visibility.Collapsed;
 
             // --- FLANCO 1: ACTUALIZACIÓN AUTOMÁTICA (UNIDAD G) ---
+#if !DEBUG
             string vDriveStr = ClassCfgUsers.ObtenerVersionUpdate();
             if (!string.IsNullOrEmpty(vDriveStr))
             {
@@ -59,6 +60,7 @@ namespace Human_Resources.Forms
                     catch (Exception ex) { MessageBox.Show("Error launching installer: " + ex.Message); }
                 }
             }
+#endif
 
             // --- FLANCO 2: SEGURIDAD REFORZADA (REINTENTOS AZURE) ---
             string pcID = GetMotherboardID();

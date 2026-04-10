@@ -40,6 +40,8 @@ namespace Human_Resources.Data
         public double Rate { get; set; }
         public string JobDes { get; set; }
         public bool Active { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
 
         // --- MÉTODOS ---
 
@@ -87,6 +89,8 @@ namespace Human_Resources.Data
                         this.Rate = (dr["Rate"] != DBNull.Value) ? Convert.ToDouble(dr["Rate"]) : 0.0;
                         this.JobDes = dr["JobDes"].ToString();
                         this.Active = dr["Active"] != DBNull.Value && Convert.ToBoolean(dr["Active"]);
+                        this.Latitude = dr["Latitude"] != DBNull.Value ? Convert.ToDecimal(dr["Latitude"]) : (decimal?)null; //
+                        this.Longitude = dr["Longitude"] != DBNull.Value ? Convert.ToDecimal(dr["Longitude"]) : (decimal?)null; //
                         return true;
                     }
                 }
@@ -122,8 +126,8 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
                 {
-                    string query = @"INSERT INTO tblStaff (Name, LastName, idDepartment,Birthday, AppDay, HiredDay, EndDay, Address, IdGeoRegion, idGeoState, idGeoCity, ZipCod, Phone, Email, ContactPersonA, ContactPhoneA, ContactPersonB, ContactPhoneB, idDocsPayroll, CompanyName, idBanks, idBanksMethod, AccountNumber, RoutingNumber, idDocsInmigration, Social, JobDes, Rate, Active) 
-                                     VALUES (@Name, @LastName, @idDepartment, @Birthday, @AppDay, @HiredDay, @EndDay, @Address, @IdGeoRegion, @idGeoState, @idGeoCity, @ZipCod, @Phone, @Email, @ContactPersonA, @ContactPhoneA, @ContactPersonB, @ContactPhoneB, @idDocsPayroll, @CompanyName, @idBanks, @idBanksMethod, @AccountNumber, @RoutingNumber, @idDocsInmigration, @Social, @JobDes, @Rate, @Active);
+                    string query = @"INSERT INTO tblStaff (Name, LastName, idDepartment,Birthday, AppDay, HiredDay, EndDay, Address, IdGeoRegion, idGeoState, idGeoCity, ZipCod, Phone, Email, ContactPersonA, ContactPhoneA, ContactPersonB, ContactPhoneB, idDocsPayroll, CompanyName, idBanks, idBanksMethod, AccountNumber, RoutingNumber, idDocsInmigration, Social, JobDes, Rate, Active, Latitude, Longitude) 
+                                     VALUES (@Name, @LastName, @idDepartment, @Birthday, @AppDay, @HiredDay, @EndDay, @Address, @IdGeoRegion, @idGeoState, @idGeoCity, @ZipCod, @Phone, @Email, @ContactPersonA, @ContactPhoneA, @ContactPersonB, @ContactPhoneB, @idDocsPayroll, @CompanyName, @idBanks, @idBanksMethod, @AccountNumber, @RoutingNumber, @idDocsInmigration, @Social, @JobDes, @Rate, @Active, @Latitude, @Longitud);
                                      SELECT SCOPE_IDENTITY();";
                     SqlCommand cmd = new SqlCommand(query, con);
                     SetParameters(cmd);
@@ -140,7 +144,7 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
                 {
-                    string query = @"UPDATE tblStaff SET Name=@Name, LastName=@LastName, idDepartment=@idDepartment, Birthday=@Birthday, AppDay=@AppDay, HiredDay=@HiredDay, EndDay=@EndDay, Address=@Address, IdGeoRegion=@IdGeoRegion, idGeoState=@idGeoState, idGeoCity=@idGeoCity, ZipCod=@ZipCod, Phone=@Phone, Email=@Email, ContactPersonA=@ContactPersonA, ContactPhoneA=@ContactPhoneA, ContactPersonB=@ContactPersonB, ContactPhoneB=@ContactPhoneB, idDocsPayroll=@idDocsPayroll, CompanyName=@CompanyName, idBanks=@idBanks, idBanksMethod=@idBanksMethod, AccountNumber=@AccountNumber, RoutingNumber=@RoutingNumber, idDocsInmigration=@idDocsInmigration, Social=@Social, JobDes=@JobDes, Rate=@Rate, Active=@Active 
+                    string query = @"UPDATE tblStaff SET Name=@Name, LastName=@LastName, idDepartment=@idDepartment, Birthday=@Birthday, AppDay=@AppDay, HiredDay=@HiredDay, EndDay=@EndDay, Address=@Address, IdGeoRegion=@IdGeoRegion, idGeoState=@idGeoState, idGeoCity=@idGeoCity, ZipCod=@ZipCod, Phone=@Phone, Email=@Email, ContactPersonA=@ContactPersonA, ContactPhoneA=@ContactPhoneA, ContactPersonB=@ContactPersonB, ContactPhoneB=@ContactPhoneB, idDocsPayroll=@idDocsPayroll, CompanyName=@CompanyName, idBanks=@idBanks, idBanksMethod=@idBanksMethod, AccountNumber=@AccountNumber, RoutingNumber=@RoutingNumber, idDocsInmigration=@idDocsInmigration, Social=@Social, JobDes=@JobDes, Rate=@Rate, Active=@Active, Latitude=@Latitude, Longitude=@Longitude
                                      WHERE id=@id";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@id", this.Id);
@@ -201,6 +205,8 @@ namespace Human_Resources.Data
             cmd.Parameters.AddWithValue("@Rate", (object)Rate ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@JobDes", (object)JobDes ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Active", Active);
+            cmd.Parameters.AddWithValue("@Latitude", (object)Latitude ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Longitude", (object)Longitude ?? DBNull.Value);
         }
 
         public void GuardarIdiomas(int idStaff, List<Human_Resources.Forms.LangStaff> listaIdiomas)

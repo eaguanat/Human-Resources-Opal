@@ -310,7 +310,7 @@ namespace Human_Resources.Forms
             }
         }
 
-        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
+        private async void BtnUpdate_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(txtName.Text)) { MessageBox.Show("Name is required"); return; }
 
@@ -344,12 +344,29 @@ namespace Human_Resources.Forms
             SN.CompanyName = txtCompanyName.Text;
             SN.JobDes = txtJobDes.Text;
             SN.Active = chkActive.IsChecked ?? true;
-            // Intentamos convertir el texto a double
             if (double.TryParse(txtRate.Text, out double rateValue)) { SN.Rate = rateValue; }
             else { SN.Rate = 0.0; } // Valor por defecto si el texto no es un número válido
 
+            // ... (Todos tus mapeos actuales de txtName, Address, etc.) ...
+            SN.Address = txtAddress.Text;
 
+            // --- LÓGICA TRANSPARENTE DE GEOLOCALIZACIÓN ---
+            string fullAddress = $"{txtAddress.Text}, {cmbCity.Text}, {cmbState.Text} {txtZip.Text}";
 
+            var geo = new Human_Resources.Data.ClassGeocoding();
+            var coords = await geo.GetCoordinatesAsync(fullAddress);
+
+            if (coords != null)
+            {
+                SN.Latitude = coords.Value.lat;
+                SN.Longitude = coords.Value.lng;
+            }
+            else
+            {
+                // Opcional: Avisar si la dirección es tan mala que Google no la encontró
+                var result = MessageBox.Show("The address could not be verified on the map. Do you want to save anyway?", "Warning", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.No) return;
+            }
             int idRes = (idSeleccionado == 0) ? SN.Insertar() : (SN.Actualizar() ? idSeleccionado : 0);
 
             if (idRes > 0)
