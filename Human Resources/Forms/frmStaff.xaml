@@ -293,6 +293,7 @@
 
                                         <ListBox x:Name="lstLanguages" 
                                                  HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Top"
                                                  Height="150" 
                                                  BorderThickness="0,0,0,1" 
                                                  BorderBrush="Transparent"

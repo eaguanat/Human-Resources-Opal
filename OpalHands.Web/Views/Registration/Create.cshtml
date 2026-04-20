@@ -149,95 +149,103 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            const overlay = document.getElementById('loadingOverlay');
 
-        // Capturamos el overlay del Layout
-        const overlay = document.getElementById('loadingOverlay');
+            // --- LÓGICA DE INACTIVIDAD (10 MINUTOS) ---
+            let idleTime = 0;
+            const idleInterval = setInterval(timerIncrement, 60000);
 
-        // 1. EVENTO CLICK PARA VERIFICAR
-        $('#btnVerify').click(function() {
-        var email = $('#txtEmail').val();
-        var pass = $('#txtPass').val();
+            $(this).mousemove(function (e) { idleTime = 0; });
+            $(this).keypress(function (e) { idleTime = 0; });
 
-        if(email === "" || pass === "") {
-        alert("Please enter Email and Password.");
-        return;
-        }
+            function timerIncrement() {
+                idleTime++;
+                if (idleTime >= 10) {
+                    window.location.href = '/Home/SessionExpired';
+                }
+            }
 
-        // Mostramos el spinner mientras verificamos el correo
-        if (overlay) overlay.classList.remove('d-none');
+            // 1. EVENTO CLICK PARA VERIFICAR
+            $('#btnVerify').click(function() {
+                var email = $('#txtEmail').val();
+                var pass = $('#txtPass').val();
 
-        $.get('/Registration/CheckEmail', { email: email }, function(data) {
-        // Ocultamos el spinner al recibir respuesta
-        if (overlay) overlay.classList.add('d-none');
+                if(email === "" || pass === "") {
+                    alert("Please enter Email and Password.");
+                    return;
+                }
 
-        if(data.isDuplicate) {
-        $('#emailMessage').text("Email already registered / Correo ya registrado").show();
-        } else {
-        $('#emailMessage').hide();
-                        
-        $('#txtEmail, #txtPass').prop('readonly', true).addClass('bg-light');
-        $('#btnVerify').prop('disabled', true)
-        .text('Verified / Verificado')
-        .css('opacity', '0.7');
-                        
-        $('#check-Email').removeClass('d-none');
-        $('#secondStep').fadeIn();
-        }
-        }).fail(function() {
-        if (overlay) overlay.classList.add('d-none');
-        alert("Error connecting to server. Please try again.");
-        });
-        });
+                if (overlay) {
+                    $('#overlayTitle').text("Starting server...");
+                    $('#overlayText').text("Please wait a moment / Espere un momento.");
+                    overlay.classList.remove('d-none');
+                }
 
-        // 2. CASCADA DE CIUDADES
-        $('#ddlState').change(function() {
-        var stateId = $(this).val();
-        var $citySelect = $('#ddlCity');
-        $citySelect.empty().append('<option value="">-- Loading... --</option>');
+                // Aquí es donde la magia ocurre
+                $.get('/Registration/CheckEmail', { email: email }, function(data) {
+                    if (overlay) overlay.classList.add('d-none');
 
-        if (stateId) {
-        $.get('/Registration/GetCities', { stateId: stateId }, function(data) {
-        $citySelect.empty().append('<option value="">-- Select City --</option>');
-        $.each(data, function(i, city) {
-        $citySelect.append($('<option>', { value: city.id, text: city.description }));
-        });
-        validateAll(); // Re-validar al cargar ciudades
-        });
-        }
-        });
+                    if(data.isDuplicate) {
+                        $('#emailMessage').text("Email already registered / Correo ya registrado").show();
+                    } else {
+                        $('#emailMessage').hide();
+                        $('#txtEmail, #txtPass').prop('readonly', true).addClass('bg-light');
+                        $('#btnVerify').prop('disabled', true).text('Verified / Verificado').css('opacity', '0.7');
+                        $('#check-Email').removeClass('d-none');
+                        $('#secondStep').fadeIn();
+                    }
+                }).fail(function() {
+                    if (overlay) overlay.classList.add('d-none');
+                    window.showConnectionError();
+                });
+            });
 
-        // 3. FUNCIÓN DE VALIDACIÓN
-        function validateAll() {
-        var allFilled = true;
-        $('.required-field').each(function() {
-        if($(this).val() === "" || $(this).val() === null) {
-        allFilled = false;
-        }
-        });
-        if($('#ddlDept').val() === "") {
-        allFilled = false;
-        }
-        $('#btnFinalize').prop('disabled', !allFilled);
-        }
+            // 2. CASCADA DE CIUDADES
+            $('#ddlState').change(function() {
+                var stateId = $(this).val();
+                var $citySelect = $('#ddlCity');
+                $citySelect.empty().append('<option value="">-- Loading... --</option>');
 
-        // 4. DISPARADORES DE VALIDACIÓN
-        $(document).on('input change blur', '.required-field, #ddlDept', function() {
-        validateAll();
-        });
+                if (stateId) {
+                    $.get('/Registration/GetCities', { stateId: stateId }, function(data) {
+                        $citySelect.empty().append('<option value="">-- Select City --</option>');
+                        $.each(data, function(i, city) {
+                            $citySelect.append($('<option>', { value: city.id, text: city.description }));
+                        });
+                        validateAll();
+                    }).fail(function() {
+                        window.showConnectionError();
+                    });
+                }
+            });
 
-        // 5. ACTIVAR SPINNER AL ENVIAR FORMULARIO FINAL
-        $('#mainForm').submit(function() {
-        if (overlay) {
-        // Cambiamos el texto del spinner para este paso específico
-        const overlayText = overlay.querySelector('h5');
-        if (overlayText) overlayText.innerText = "Connecting with Opal Hands...";
-        overlay.classList.remove('d-none');
-        }
-        });
+            // 3. FUNCIÓN DE VALIDACIÓN
+            function validateAll() {
+                var allFilled = true;
+                $('.required-field').each(function() {
+                    if($(this).val() === "" || $(this).val() === null) {
+                        allFilled = false;
+                    }
+                });
+                if($('#ddlDept').val() === "") {
+                    allFilled = false;
+                }
+                $('#btnFinalize').prop('disabled', !allFilled);
+            }
 
+            $(document).on('input change blur', '.required-field, #ddlDept', function() {
+                validateAll();
+            });
+
+            $('#mainForm').submit(function() {
+                if (overlay) {
+                    $('#overlayTitle').text("Connecting with Opal Hands...");
+                    $('#overlayText').text("Securing your information / Asegurando su información.");
+                    overlay.classList.remove('d-none');
+                }
+            });
         });
     </script>
 }

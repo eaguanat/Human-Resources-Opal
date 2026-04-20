@@ -53,7 +53,7 @@ namespace OpalHands.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(tblApplicants applicant)
         {
-            // --- PASO B: LIMPIEZA DE HONOR (Mantener igual) ---
+            // --- PASO B: LIMPIEZA DE HONOR (Se mantiene intacto) ---
             applicant.FirstName = CleanText(applicant.FirstName);
             applicant.LastName = CleanText(applicant.LastName);
             applicant.Address = CleanText(applicant.Address);
@@ -75,24 +75,42 @@ namespace OpalHands.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                // ==========================================
-                // INICIO DE LA CIRUGÍA QUIRÚRGICA
-                // ==========================================
+                // ============================================================
+                // INICIO DE LA CIRUGÍA: GEOLOCALIZACIÓN AUTOMÁTICA
+                // ============================================================
+                try
+                {
+                    // Buscamos los nombres de Ciudad y Estado para que Google sea preciso
+                    var cityName = _context.tblGeoCity.FirstOrDefault(c => c.Id == applicant.idGeoCity)?.Description;
+                    var stateName = _context.tblGeoState.FirstOrDefault(s => s.Id == applicant.idGeoState)?.Description;
+
+                    // Armamos la dirección completa para el motor de búsqueda
+                    string fullAddress = $"{applicant.Address}, {cityName}, {stateName} {applicant.ZipCode}, USA";
+
+                    // Llamamos a la clase que creamos (asegúrate de haberla copiado al proyecto Web)
+                    var coords = await ClassGeocoding.GetCoordinatesAsync(fullAddress);
+                    if (coords.HasValue)
+                    {
+                        applicant.Latitude = coords.Value.lat;
+                        applicant.Longitude = coords.Value.lng;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Si Google falla por algo, no bloqueamos el registro del aplicante,
+                    // solo dejamos un registro en el log de debug.
+                    System.Diagnostics.Debug.WriteLine("Geocoding Error: " + ex.Message);
+                }
+                // ============================================================
 
                 applicant.Status = 1; // 1 = Pendiente / Recibido
                 applicant.DateCreated = DateTime.Now; // Fecha y hora actual de Tampa
 
-                // El campo LastLogin ya no se toca porque lo eliminamos de la tabla
-
-                // ==========================================
-                // FIN DE LA CIRUGÍA
-                // ==========================================
-
-                // 2. GUARDADO EN AZURE
+                // 2. GUARDADO EN BASE DE DATOS (AZURE)
                 _context.Add(applicant);
                 await _context.SaveChangesAsync();
 
-                // 3. ENVÍO DE CORREO (Mantener igual...)
+                // 3. ENVÍO DE CORREO
                 try
                 {
                     string fullNombre = $"{applicant.FirstName} {applicant.LastName}";
@@ -121,6 +139,13 @@ namespace OpalHands.Web.Controllers
             ViewBag.States = new SelectList(_context.tblGeoState, "Id", "Description");
             return View(applicant);
         }
+
+
+
+
+
+
+
 
         // --- ACCIÓN DE BIENVENIDA / SUCCESS PAGE ---
         public IActionResult Success()

@@ -163,8 +163,10 @@
                                 </Grid>
                             </Button>
                             <StackPanel x:Name="pnlSubMenuProspects" Visibility="Collapsed" Background="#3E4249">
-                                <Button Content="  ⭕ tblApplicants" Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmtblApplicants_Click"/>
+                                <Button Content="  ⭕ Applicants"    Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmtblApplicants_Click"/>
                                 <Button Content="  ⭕ Required Docs" Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmProspectsDocs_Click"/>
+                                <Separator Background="#DCDCDC"   Height="1" Margin="5,2" />
+                                <Button Content="  ⭕ Geolocation"   Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmGeoLocator_Click"/>
                             </StackPanel>
                         </StackPanel>
 

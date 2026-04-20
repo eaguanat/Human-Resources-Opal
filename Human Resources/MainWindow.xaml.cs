@@ -58,7 +58,7 @@ namespace Human_Resources
         // LÓGICA DE NAVEGACIÓN POR PESTAÑAS (TABCONTROL)
         // ============================================================
 
-        private void AbrirFormulario(string titulo, Page pagina)
+        public void AbrirFormulario(string titulo, Page pagina)
         {
             // 1. Verificamos si la pestaña ya existe para no abrirla dos veces
             foreach (TabItem item in tcPrincipal.Items)
@@ -203,6 +203,14 @@ namespace Human_Resources
             AbrirFormulario("Prospects Documents", new Forms.frmtblApplicantsDocs());
         }
 
+        private void BtnFrmGeoLocator_Click(object sender, RoutedEventArgs e)
+        {
+            // Este es para que usted configure la lista de documentos (tblDocsRequired)
+            AbrirFormulario("Geolocation", new Forms.frmGeoLocator());
+        }
+
+
+
 
         // SETUP
 
@@ -298,6 +306,7 @@ namespace Human_Resources
             pnlSubMenuStaff.Visibility = Visibility.Collapsed;
             pnlSubMenuStaffPost.Visibility = Visibility.Collapsed;
             pnlSubMenuFind.Visibility = Visibility.Collapsed;
+            pnlSubMenuProspects.Visibility = Visibility.Collapsed;
             pnlSubMenuSetup.Visibility = Visibility.Collapsed;
 
             // Y las flechas apunten hacia abajo
@@ -325,6 +334,7 @@ namespace Human_Resources
             pnlSubMenuFind.Visibility = Visibility.Collapsed;
             pnlSubMenuStaff.Visibility = Visibility.Collapsed;
             pnlSubMenuStaffPost.Visibility = Visibility.Collapsed;
+            pnlSubMenuProspects.Visibility = Visibility.Collapsed;
             pnlSubMenuSetup.Visibility = Visibility.Collapsed;
 
             if (txtFlecha != null) txtFlecha.Text = "⌵";

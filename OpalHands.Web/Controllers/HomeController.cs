@@ -37,29 +37,37 @@ namespace OpalHands.Web.Controllers
             return View();
         }
 
+        public IActionResult SessionExpired()
+        {
+            return View();
+        }
+
+
+
         // NUEVA PÁGINA "CONTACT US" (Extrae datos de tblCompany)
         public async Task<IActionResult> Contact()
         {
-            // 1. Obtenemos los datos base de la compañía
-            var company = await _context.tblCompany.FirstOrDefaultAsync();
-
-            if (company != null)
+            try
             {
-                // 2. Buscamos el nombre de la Ciudad usando el ID de la compañía
-                var city = await _context.tblGeoCity
-                    .FirstOrDefaultAsync(c => c.Id == company.idGeoCity);
+                var company = await _context.tblCompany.FirstOrDefaultAsync();
 
-                // 3. Buscamos el nombre del Estado usando el ID de la compañía
-                var state = await _context.tblGeoState
-                    .FirstOrDefaultAsync(s => s.Id == company.idGeoState);
+                if (company != null)
+                {
+                    var city = await _context.tblGeoCity.FirstOrDefaultAsync(c => c.Id == company.idGeoCity);
+                    var state = await _context.tblGeoState.FirstOrDefaultAsync(s => s.Id == company.idGeoState);
 
-                // 4. Guardamos los nombres en el ViewBag para la vista
-                ViewBag.CityName = city?.Description;
-                
-                ViewBag.StateName = state?.Description;
+                    ViewBag.CityName = city?.Description;
+                    ViewBag.StateName = state?.Description;
+                }
+
+                return View(company ?? new tblCompany());
             }
-
-            return View(company ?? new tblCompany());
+            catch (Exception ex)
+            {
+                // Si falla la red o el host, lo mandamos a la salida elegante
+                _logger.LogError(ex, "Error de conexión en la página de Contacto");
+                return RedirectToAction("Index"); // O a tu nueva vista de Error de Conexión
+            }
         }
 
         public IActionResult Privacy()

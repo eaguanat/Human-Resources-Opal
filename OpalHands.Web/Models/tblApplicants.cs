@@ -33,5 +33,7 @@ namespace OpalHands.Web.Models
   
         public string? ServiceZipCodes { get; set; }
         public string? Observations { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
     }
 }
