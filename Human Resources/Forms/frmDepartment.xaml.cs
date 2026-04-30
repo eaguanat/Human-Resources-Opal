@@ -11,10 +11,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-// using System.Windows.Markup; // No es necesario normalmente, pero puede ayudar en algunos casos de referencia.
 using Human_Resources.Forms;
 using System.Data; // Necesario para el DataTable
 using Human_Resources.Data; // Para que reconozca tu carpeta y la clase
+using System.Text.RegularExpressions; // Necesario para NumberValidationTextBox
 
 namespace Human_Resources.Forms
 {
@@ -28,6 +28,13 @@ namespace Human_Resources.Forms
 
             // Acutualiza el estado de los botones según si hay datos o no
             ActualizarEstadoBotones((dgListado.Items != null && dgListado.Items.Count > 0));
+        }
+
+        // Validación para campos numéricos (reutilizado de otros formularios)
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9]+");
+            e.Handled = regex.IsMatch(e.Text);
         }
 
         private void ActualizarEstadoBotones(bool rtState)
@@ -58,9 +65,9 @@ namespace Human_Resources.Forms
         // BOTONERA PRINCIPAL
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // LlenarGrid();
-
+            // LlenarGrid(); // Ya se llama en el constructor, no es necesario aquí.
         }
+
         private void BtnAdd_Click(object sender, RoutedEventArgs e)
         {
             btnPrint.Visibility = Visibility.Collapsed; // Quito el boton de Impresion
@@ -68,6 +75,7 @@ namespace Human_Resources.Forms
             GridListado.Visibility = Visibility.Collapsed;
             GridEdicion.Visibility = Visibility.Visible;
             txtDescription.Clear();
+            txtSupervision.Clear(); // ¡LIMPIAR NUEVO CAMPO!
             txtDescription.Focus();
         }
 
@@ -85,14 +93,15 @@ namespace Human_Resources.Forms
             btnPrint.Visibility = Visibility.Collapsed;
 
             // 2. Obtener los datos de la fila seleccionada
-            // Convertimos el Item seleccionado a DataRowView (el formato del DataTable en el grid)
             DataRowView fila = (DataRowView)dgListado.SelectedItem;
 
-            // 3. Guardamos el ID en nuestra variable y pasamos el texto al TextBox
+            // 3. Guardamos el ID en nuestra variable y pasamos el texto a los TextBox
             idSeleccionado = Convert.ToInt32(fila["Id"]);
             txtDescription.Text = fila["Description"].ToString();
+            // ¡CARGAR NUEVO CAMPO!
+            txtSupervision.Text = fila["Supervision"] != DBNull.Value ? fila["Supervision"].ToString() : "";
 
-            // 4. Cambiar de vista (esto ya lo tenías)
+            // 4. Cambiar de vista
             lblTitulo.Text = "Update Department";
             GridListado.Visibility = Visibility.Collapsed;
             GridEdicion.Visibility = Visibility.Visible;
@@ -101,7 +110,6 @@ namespace Human_Resources.Forms
 
         private void BtnExit_Click(object sender, RoutedEventArgs e)
         {
-            // this.NavigationService.Content = null;
             // Buscamos la ventana principal (MainWindow)
             var principal = Window.GetWindow(this) as MainWindow;
 
@@ -128,37 +136,64 @@ namespace Human_Resources.Forms
 
         private void BtnUpdate_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Validación de campo vacío
+            // 1. Validación de campo vacío (Description)
             if (string.IsNullOrWhiteSpace(txtDescription.Text))
             {
-                MessageBox.Show("Please enter a state name.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter a department name.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 txtDescription.Focus();
                 return;
             }
 
-            // 2. Preparar el objeto con los datos de la pantalla
+            // 2. Validación de Supervision (numérico y rango de 2 dígitos si es necesario)
+            int? supervisionValue = null;
+            if (!string.IsNullOrWhiteSpace(txtSupervision.Text))
+            {
+                if (int.TryParse(txtSupervision.Text, out int tempSupervision))
+                {
+                    if (tempSupervision >= 0 && tempSupervision <= 99) // Rango de 0 a 99 para 2 dígitos
+                    {
+                        supervisionValue = tempSupervision;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Supervision period must be between 0 and 99 days.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        txtSupervision.Focus();
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Supervision period must be a valid number.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    txtSupervision.Focus();
+                    return;
+                }
+            }
+
+
+            // 3. Preparar el objeto con los datos de la pantalla
             ClassDepartment objeto = new ClassDepartment();
-            objeto.Id = idSeleccionado; // Si es 0, SQL lo ignorará en el Insert. Si es > 0, SQL lo usará para el Update.
+            objeto.Id = idSeleccionado;
             objeto.Description = txtDescription.Text.Trim();
+            objeto.Supervision = supervisionValue; // ¡ASIGNAR NUEVO CAMPO!
 
             bool success = false;
             string successMessage = "";
 
-            // 3. Decidir acción basada en idSeleccionado
+            // 4. Decidir acción basada en idSeleccionado
             if (idSeleccionado == 0)
             {
                 // CASO: NUEVO REGISTRO
                 success = objeto.Insertar();
-                successMessage = "The new state has been saved successfully.";
+                successMessage = "The new department has been saved successfully.";
             }
             else
             {
                 // CASO: MODIFICAR EXISTENTE
                 success = objeto.Actualizar();
-                successMessage = "The state information has been updated successfully.";
+                successMessage = "The department information has been updated successfully.";
             }
 
-            // 4. Procesar el resultado de la operación
+            // 5. Procesar el resultado de la operación
             if (success)
             {
                 MessageBox.Show(successMessage, "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -166,6 +201,7 @@ namespace Human_Resources.Forms
                 // Limpiamos todo para la próxima vez
                 idSeleccionado = 0;
                 txtDescription.Clear();
+                txtSupervision.Clear(); // ¡LIMPIAR NUEVO CAMPO!
 
                 // Regresamos a la lista y refrescamos los datos
                 BtnVolverInicio_Click(null, null);
@@ -188,10 +224,10 @@ namespace Human_Resources.Forms
             // 2. Obtener datos de la fila
             DataRowView fila = (DataRowView)dgListado.SelectedItem;
             int idAEliminar = Convert.ToInt32(fila["Id"]);
-            string nombreEstado = fila["Description"].ToString();
+            string nombreDepartamento = fila["Description"].ToString();
 
             // 3. Pedir confirmación (Are you sure?)
-            MessageBoxResult answer = MessageBox.Show($"Are you sure you want to delete this record?: {nombreEstado}?",
+            MessageBoxResult answer = MessageBox.Show($"Are you sure you want to delete this record?: {nombreDepartamento}?",
                                                       "Confirm Delete",
                                                       MessageBoxButton.YesNo,
                                                       MessageBoxImage.Question);
@@ -203,7 +239,7 @@ namespace Human_Resources.Forms
                 // 4. Validar si está en uso antes de borrar
                 if (objeto.EstaEnUso(idAEliminar))
                 {
-                    MessageBox.Show("This state cannot be deleted because it is currently assigned to staff members",
+                    MessageBox.Show("This department cannot be deleted because it is currently assigned to staff members or applicants.", // Mensaje actualizado
                                     "Integrity Error",
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Stop);
@@ -275,7 +311,9 @@ namespace Human_Resources.Forms
                     yPos += 45;
 
                     // 4. MEMBRETE: Descriptions + Línea
-                    FormattedText textHeader = new FormattedText("Descriptions", System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, fontBold, 12, Brushes.Black, dpi);
+                    // Ajustamos el encabezado para incluir "Supervision"
+                    string headerText = "Description                                                 Supervision (days)";
+                    FormattedText textHeader = new FormattedText(headerText, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, fontBold, 12, Brushes.Black, dpi);
                     dc.DrawText(textHeader, new Point(margin, yPos));
 
                     yPos += 22;
@@ -283,7 +321,7 @@ namespace Human_Resources.Forms
 
                     yPos += 15;
 
-                    // 5. LISTADO DE ESTADOS
+                    // 5. LISTADO DE DEPARTAMENTOS
                     ClassDepartment obj = new ClassDepartment();
                     DataTable dt = obj.Listar();
 
@@ -294,7 +332,13 @@ namespace Human_Resources.Forms
                             // Verificamos si nos estamos quedando sin espacio (Margen inferior de 70 para el número de página)
                             if (yPos > pageHeight - 80) break;
 
-                            FormattedText rowText = new FormattedText(row["Description"].ToString(), System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, fontRegular, 11, Brushes.Black, dpi);
+                            string description = row["Description"].ToString();
+                            string supervision = row["Supervision"] != DBNull.Value ? row["Supervision"].ToString() : "N/A";
+
+                            // Formatear para alinear en la impresión
+                            string rowPrintText = $"{description.PadRight(50).Substring(0, Math.Min(description.Length, 50))} {supervision.PadLeft(10)}"; // Ajustar padding y longitud
+
+                            FormattedText rowText = new FormattedText(rowPrintText, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight, fontRegular, 11, Brushes.Black, dpi);
                             dc.DrawText(rowText, new Point(margin + 10, yPos));
                             yPos += 20;
                         }

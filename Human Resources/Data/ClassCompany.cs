@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Windows;
+using System.Windows; // Para MessageBox, aunque idealmente en una capa de datos no se debería.
 
 namespace Human_Resources.Data
 {
-    public class ClassCompany // Corregido el nombre de ClassCompay a ClassCompany
+    public class ClassCompany
     {
         // --- PROPIEDADES ---
-        public int Id { get; set; }
+        public int Id { get; set; } // Aunque siempre será 1, lo mantenemos por consistencia
         public string Name { get; set; }
         public int? IdGeoRegion { get; set; }
         public string Address { get; set; }
@@ -19,18 +19,30 @@ namespace Human_Resources.Data
         public string ZipCode { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-        public byte[] Logo { get; set; } // Cambiado de PictureBox a byte[] para la BD
+        public byte[] Logo { get; set; }
+
+        // Propiedades para la configuración de correo electrónico (NUEVAS)
+        public string MailServer { get; set; }
+        public int? MailPort { get; set; }
+        public string MailUsername { get; set; }
+        public string MailPasswordText { get; set; } // Contraseña en texto plano para el UI/hashing
+        public string MailPasswordHash { get; set; } // Contraseña hasheada para la BD
+        public bool? EnableSSL { get; set; }
+        public string SenderName { get; set; }
 
         // --- MÉTODOS ---
-        public bool ObtenerPorId(int idBusqueda)
+
+        /// <summary>
+        /// Obtiene los datos de la compañía (siempre ID = 1).
+        /// </summary>
+        public bool Obtener()
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
+                using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    string query = "SELECT * FROM tblCompany WHERE id = @id";
+                    string query = "SELECT * FROM tblCompany WHERE id = 1"; // Siempre buscamos el ID 1
                     SqlCommand cmd = new SqlCommand(query, con);
-                    cmd.Parameters.AddWithValue("@id", idBusqueda);
                     con.Open();
                     SqlDataReader dr = cmd.ExecuteReader();
 
@@ -46,90 +58,108 @@ namespace Human_Resources.Data
                         this.Phone = dr["Phone"].ToString();
                         this.Email = dr["Email"].ToString();
                         this.Logo = dr["Logo"] != DBNull.Value ? (byte[])dr["Logo"] : null;
+
+                        // Cargar propiedades de correo
+                        this.MailServer = dr["MailServer"].ToString();
+                        this.MailPort = dr["MailPort"] != DBNull.Value ? Convert.ToInt32(dr["MailPort"]) : (int?)null;
+                        this.MailUsername = dr["MailUsername"].ToString();
+                        this.MailPasswordHash = dr["MailPassword"].ToString(); // Cargar el hash para futuras verificaciones
+                        this.EnableSSL = dr["EnableSSL"] != DBNull.Value ? Convert.ToBoolean(dr["EnableSSL"]) : (bool?)null;
+                        this.SenderName = dr["SenderName"].ToString();
                         return true;
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error loading details: " + ex.Message, "ObtenerPorId"); }
+            catch (Exception ex) { MessageBox.Show("Error loading company details: " + ex.Message, "ObtenerCompany"); }
             return false;
         }
 
-        public DataTable Listar(string filtro = "")
+        /// <summary>
+        /// Verifica si ya existe un registro con ID = 1.
+        /// </summary>
+        public bool Existe()
         {
-            DataTable dt = new DataTable();
             try
             {
-                using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
+                using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // Corregido el ORDER BY para usar Name
-                    string query = @"SELECT id, Name, Address, Phone
-                                     FROM tblCompany 
-                                     WHERE Name LIKE @f 
-                                     ORDER BY Name";
-                    SqlDataAdapter da = new SqlDataAdapter(query, con);
-                    da.SelectCommand.Parameters.AddWithValue("@f", "%" + filtro + "%");
-                    da.Fill(dt);
+                    string query = "SELECT COUNT(*) FROM tblCompany WHERE id = 1";
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    con.Open();
+                    return (int)cmd.ExecuteScalar() > 0;
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Database Error (List): " + ex.Message, "Listar"); }
-            return dt;
-        }
-
-        public int Insertar()
-        {
-            try
+            catch (Exception ex)
             {
-                using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
-                {
-                    // Corregido @ZipCod por @ZipCode
-                    string query = @"INSERT INTO tblCompany (Name, Address, IdGeoRegion, idGeoState, idGeoCity, ZipCode, Phone, Email, Logo) 
-                                     VALUES (@Name, @Address, @IdGeoRegion, @idGeoState, @idGeoCity, @ZipCode, @Phone, @Email, @Logo);
-                                     SELECT SCOPE_IDENTITY();";
-                    SqlCommand cmd = new SqlCommand(query, con);
-                    SetParameters(cmd);
-                    con.Open();
-                    return Convert.ToInt32(cmd.ExecuteScalar());
-                }
+                MessageBox.Show("Error checking if company exists: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
-            catch (Exception ex) { MessageBox.Show("Database Error (Insert): " + ex.Message,"Insertar"); return 0; }
         }
 
-        public bool Actualizar()
+        /// <summary>
+        /// Inserta o actualiza la configuración de la compañía (siempre ID = 1).
+        /// </summary>
+        public bool Guardar()
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
+                using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // Corregido tblComapny por tblCompany
-                    string query = @"UPDATE tblCompany SET Name=@Name, Address=@Address, IdGeoRegion=@IdGeoRegion, 
-                                     idGeoState=@idGeoState, idGeoCity=@idGeoCity, ZipCode=@ZipCode, Phone=@Phone, 
-                                     Email=@Email, Logo=@Logo 
-                                     WHERE id=@id";
-                    SqlCommand cmd = new SqlCommand(query, con);
-                    cmd.Parameters.AddWithValue("@id", this.Id);
-                    SetParameters(cmd);
                     con.Open();
+
+                    // --- Manejo de la Contraseña de Correo ---
+                    if (!string.IsNullOrEmpty(this.MailPasswordText)) // Si se ha introducido una nueva contraseña
+                    {
+                        this.MailPasswordHash = ClassCfgUsers.HashPassword(this.MailPasswordText);
+                    }
+                    else if (string.IsNullOrEmpty(this.MailPasswordHash)) // Si no se ha introducido nueva y no hay hash previo, asegurar NULL o vacío.
+                    {
+                        this.MailPasswordHash = null;
+                    }
+                    // Si MailPasswordText está vacío pero MailPasswordHash ya tiene un valor (de una carga previa),
+                    // no lo modificamos, manteniendo la contraseña existente.
+
+
+                    string query;
+                    SqlCommand cmd;
+
+                    if (Existe()) // Si ya existe el registro con ID=1, actualizamos
+                    {
+                        query = @"UPDATE tblCompany SET 
+                                    Name=@Name, Address=@Address, IdGeoRegion=@IdGeoRegion, 
+                                    idGeoState=@idGeoState, idGeoCity=@idGeoCity, ZipCode=@ZipCode, Phone=@Phone, 
+                                    Email=@Email, Logo=@Logo,
+                                    MailServer=@MailServer, MailPort=@MailPort, MailUsername=@MailUsername, 
+                                    MailPassword=@MailPassword, EnableSSL=@EnableSSL, SenderName=@SenderName
+                                WHERE id=1";
+                        cmd = new SqlCommand(query, con);
+                    }
+                    else // Si no existe, insertamos con ID=1 (si la columna Id es Identity, SQL Server la ignorará, pero intentaremos forzar el 1)
+                    {
+                        // Nota: Si Id es IDENTITY, no podemos insertar el ID manualmente.
+                        // La estrategia es insertar y luego actualizar para asegurarnos de que el ID sea 1.
+                        // Sin embargo, lo más seguro es usar el Update si ya existe o Insertar uno nuevo si no.
+                        // Para esta lógica de "único registro", la forma más sencilla es siempre hacer UPDATE
+                        // si Existe() devuelve true. Si no existe, se inserta una vez.
+                        query = @"INSERT INTO tblCompany (Id, Name, Address, IdGeoRegion, idGeoState, idGeoCity, ZipCode, Phone, Email, Logo, 
+                                MailServer, MailPort, MailUsername, MailPassword, EnableSSL, SenderName) 
+                                VALUES (1, @Name, @Address, @IdGeoRegion, @idGeoState, @idGeoCity, @ZipCode, @Phone, @Email, @Logo, 
+                                @MailServer, @MailPort, @MailUsername, @MailPassword, @EnableSSL, @SenderName);";
+                        cmd = new SqlCommand(query, con);
+                    }
+
+                    SetParameters(cmd);
+                    // Si se inserta un nuevo registro, el SCOPE_IDENTITY() devolvería el ID autogenerado,
+                    // pero para un registro singleton, realmente no nos interesa.
                     return cmd.ExecuteNonQuery() > 0;
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Database Error (Update): " + ex.Message,"Actualizar"); return false; }
+            catch (Exception ex) { MessageBox.Show("Database Error (Save Company): " + ex.Message, "GuardarCompany"); return false; }
         }
 
-        public bool Eliminar(int idEliminar)
-        {
-            try
-            {
-                using (SqlConnection con = new SqlConnection(Human_Resources.Data.ClassConexion.CadenaConexion))
-                {
-                    con.Open();
-                    SqlCommand cmd = new SqlCommand("DELETE FROM tblCompany WHERE id = @id", con);
-                    cmd.Parameters.AddWithValue("@id", idEliminar);
-                    return cmd.ExecuteNonQuery() > 0;
-                }
-            }
-            catch (Exception ex) { MessageBox.Show("Database Error (Delete): " + ex.Message); return false; }
-        }
-
+        /// <summary>
+        /// Helper para establecer TODOS los parámetros para INSERT/UPDATE.
+        /// </summary>
         private void SetParameters(SqlCommand cmd)
         {
             cmd.Parameters.AddWithValue("@Name", (object)Name ?? DBNull.Value);
@@ -140,11 +170,18 @@ namespace Human_Resources.Data
             cmd.Parameters.AddWithValue("@ZipCode", (object)ZipCode ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Phone", (object)Phone ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Email", (object)Email ?? DBNull.Value);
-            // lOGO
+
             SqlParameter paramLogo = new SqlParameter("@Logo", SqlDbType.VarBinary);
             paramLogo.Value = (object)Logo ?? DBNull.Value;
             cmd.Parameters.Add(paramLogo);
+
+            // Parámetros de Correo Electrónico
+            cmd.Parameters.AddWithValue("@MailServer", (object)MailServer ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MailPort", (object)MailPort ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MailUsername", (object)MailUsername ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@MailPassword", (object)MailPasswordHash ?? DBNull.Value); // Usamos el hash
+            cmd.Parameters.AddWithValue("@EnableSSL", (object)EnableSSL ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@SenderName", (object)SenderName ?? DBNull.Value);
         }
- 
     }
 }

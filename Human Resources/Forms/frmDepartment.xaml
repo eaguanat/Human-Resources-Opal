@@ -45,17 +45,22 @@
                         BorderThickness="0" 
                         GridLinesVisibility="None"
                         HeadersVisibility="Column" 
-                        FontSize="20" 
+                        FontSize="16" 
                         RowHeight="25"
                         AlternationCount="2"
                         RowBackground="White"
                         AlternatingRowBackground="#F9F9FB">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding Id}" Visibility="Collapsed"/>
-                            <DataGridTextColumn Header="Existing Records" 
+                            <DataGridTextColumn Header="Description" 
                                                 Binding="{Binding Description}" 
                                                 FontSize="15" 
                                                 Width="*"/>
+                            <!-- NUEVA COLUMNA EN EL DATAGRID! -->
+                            <DataGridTextColumn Header="Supervision (days)" 
+                                                Binding="{Binding Supervision}" 
+                                                FontSize="15" 
+                                                Width="Auto"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -109,12 +114,41 @@
                                    Margin="0,0,0,5" FontSize="16"/>
                         <TextBox x:Name="txtDescription" 
                                  Height="45" Padding="10,0" 
-                                 MaxLength="40"
+                                 MaxLength="50"
                                  VerticalContentAlignment="Center" 
                                  FontSize="18"
                                  CharacterCasing="Upper" 
                                  BorderThickness="0,0,0,2" 
                                  BorderBrush="#3498db" Background="#F4F4F4"/>
+
+                        <!-- CAMPO DE SUPERVISION ALINEADO A LA DERECHA -->
+                        <Grid Margin="0,20,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Supervision Period (days)" 
+                                       Foreground="#666" 
+                                       FontSize="16"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       Margin="0,0,10,0"
+                                       Grid.Column="0"/>
+
+                            <TextBox x:Name="txtSupervision" 
+                                     Width="60" Height="45" 
+                                     Padding="5,0" 
+                                     MaxLength="2"  
+                                     VerticalContentAlignment="Center" 
+                                     HorizontalContentAlignment="Center"
+                                     FontSize="18"
+                                     PreviewTextInput="NumberValidationTextBox" 
+                                     BorderThickness="0,0,0,2" 
+                                     BorderBrush="#3498db" 
+                                     Background="#F4F4F4"
+                                     Grid.Column="1"/>
+                        </Grid>
 
                         <StackPanel Orientation="Horizontal" Margin="0,40,0,0" HorizontalAlignment="Center">
                             <Button Content="_Update" 
@@ -144,4 +178,3 @@
         </Border>
     </Grid>
 </Page>
-

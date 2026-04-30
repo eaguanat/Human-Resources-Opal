@@ -48,37 +48,49 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="100" />
-                    <!-- Para Top X -->
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Fila 1 -->
                     <StackPanel Grid.Row="0" Grid.Column="0" Margin="5">
                         <TextBlock Text="Origin" FontSize="14" FontWeight="Bold"/>
                         <ComboBox x:Name="cmbOrigin"
-                                  Height="25" Margin="0,5"
-                                  DisplayMemberPath="Description" SelectedValuePath="Id"/>
+                      Height="25" Margin="0,5,0,0"
+                      SelectionChanged="cmbOrigin_SelectionChanged" 
+                      DisplayMemberPath="Description" SelectedValuePath="Id"/>
+
+                        <CheckBox x:Name="chkActive" 
+                      Content="Active Only" 
+                      IsChecked="True" 
+                      FontSize="11" 
+                      Foreground="#2C3E50"
+                      FontWeight="SemiBold"
+                      Margin="2,2,0,5"
+                      Cursor="Hand"
+                      VerticalContentAlignment="Center"/>
                     </StackPanel>
+
                     <StackPanel Grid.Row="0" Grid.Column="1" Margin="5">
                         <TextBlock Text="Department" FontSize="14" FontWeight="Bold"/>
                         <ComboBox x:Name="cmbDepartment"
-                                  Height="25" Margin="0,5"
-                                  DisplayMemberPath="Description" SelectedValuePath="Id"/>
+                      Height="25" Margin="0,5"
+                      DisplayMemberPath="Description" SelectedValuePath="Id"/>
                     </StackPanel>
+
                     <StackPanel Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" Margin="5">
                         <TextBlock Text="Address to Locate" FontSize="14" FontWeight="Bold"/>
                         <TextBox x:Name="txtAddress"
-                                 Height="25" Margin="0,5"
-                                 MaxLength="200" CharacterCasing="Upper"/>
+                     Height="25" Margin="0,5"
+                     MaxLength="200" CharacterCasing="Upper"/>
                     </StackPanel>
+
                     <StackPanel Grid.Row="0" Grid.Column="5" Margin="5">
                         <TextBlock Text="Top Results" FontSize="14" FontWeight="Bold"/>
                         <ComboBox x:Name="cmbTopX"
-                                  Height="25" Margin="0,5"
-                                  DisplayMemberPath="Description" SelectedValuePath="Id"/>
+                      Height="25" Margin="0,5"
+                      DisplayMemberPath="Description" SelectedValuePath="Id"/>
                     </StackPanel>
                 </Grid>
             </Border>

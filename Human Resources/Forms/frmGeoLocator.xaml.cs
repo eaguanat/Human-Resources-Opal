@@ -69,28 +69,28 @@ namespace Human_Resources.Forms
         {
             try
             {
-                string json = e.WebMessageAsJson;
-                // El mapa nos envía el ID del marcador que se tocó
-                dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-                int id = data.id;
+                // 1. Leemos el mensaje del mapa de forma segura
+                string json = e.TryGetWebMessageAsString();
+                var data = Newtonsoft.Json.Linq.JObject.Parse(json);
+                int id = (int)data["id"];
 
-                // Buscamos la entidad en nuestra lista actual de resultados
+                // 2. Buscamos a la persona
                 var entidad = _currentResults.FirstOrDefault(x => x.Id == id);
 
                 if (entidad != null)
                 {
-                    string info = $"NAME: {entidad.Name}\n" +
-                                  $"ADDRESS: {entidad.Address}\n" +
-                                  $"PHONE: {entidad.Phone}\n" +
-                                  $"EMAIL: {entidad.Email}\n" +
-                                  $"DISTANCE: {entidad.DistanceMiles:N2} miles";
+                    // --- TRUCO SENSEI ---
+                    // NO usamos: dgResultados.SelectedItem = entidad; (esto dispararía su MessageBox)
 
-                    MessageBox.Show(info, $"Details - {entidad.EntityType}", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // USAMOS esto: Solo mueve la lista para que la persona sea visible
+                    // Así usted ve quién es en la tabla sin que salte el cuadro de texto.
+                    dgResultados.ScrollIntoView(entidad);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                // Esto evita que el programa se cierre si hay un error de comunicación
+                System.Diagnostics.Debug.WriteLine("Error de comunicación con el mapa: " + ex.Message);
             }
         }
 
@@ -136,6 +136,12 @@ namespace Human_Resources.Forms
             cmbTopX.IsEnabled = enabled;
             BtnBuscar.IsEnabled = enabled;
             BtnResetFiltro.IsEnabled = enabled;
+
+            // Bloqueamos o habilitamos el CheckBox según el modo
+            chkActive.IsEnabled = enabled;
+
+            // Opcional: Un toque visual para que se note el bloqueo (opacidad)
+            chkActive.Opacity = enabled ? 1.0 : 0.7;
         }
 
         // 1. Agregamos "async" aquí
@@ -145,12 +151,16 @@ namespace Human_Resources.Forms
             cmbDepartment.SelectedIndex = -1;
             txtAddress.Clear();
             cmbTopX.SelectedValue = 10;
+
+            // Reset del CheckBox
+            chkActive.IsChecked = true;
+            chkActive.IsEnabled = true;
+
             dgResultados.ItemsSource = null;
             _currentResults = null;
             _centerLat = 0;
             _centerLng = 0;
 
-            // 2. Agregamos "await" aquí
             await LoadMap(28.00m, -81.50m, new List<GeoResult>());
 
             CtrlForm(ViewMode.Filter);
@@ -184,6 +194,7 @@ namespace Human_Resources.Forms
 
         private async void BtnBuscar_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Validaciones de entrada
             if (cmbOrigin.SelectedValue == null) { MessageBox.Show("Origin is required.", "Validation"); return; }
             if (cmbDepartment.SelectedValue == null) { MessageBox.Show("Department is required.", "Validation"); return; }
             if (string.IsNullOrWhiteSpace(txtAddress.Text)) { MessageBox.Show("Address is required.", "Validation"); return; }
@@ -192,28 +203,63 @@ namespace Human_Resources.Forms
             int idDepartment = (int)cmbDepartment.SelectedValue;
             string address = txtAddress.Text.Trim();
             int topX = (int)cmbTopX.SelectedValue;
+            bool soloActivos = chkActive.IsChecked ?? true;
 
+            // 2. Obtener Coordenadas
             ClassGeocoding geocodingService = new ClassGeocoding();
             var coordinates = await geocodingService.GetCoordinatesAsync(address);
 
             if (!coordinates.HasValue)
             {
-                MessageBox.Show("Could not find coordinates.", "Error");
+                MessageBox.Show("Could not find coordinates for the provided address.", "Error");
                 return;
             }
 
             _centerLat = coordinates.Value.lat;
             _centerLng = coordinates.Value.lng;
 
+            // 3. Consultar la Base de Datos
             ClassGeoLocator geoLocator = new ClassGeoLocator();
-            _currentResults = geoLocator.GetNearestEntities(entityType, idDepartment, _centerLat, _centerLng, topX);
+            _currentResults = geoLocator.GetNearestEntities(entityType, idDepartment, _centerLat, _centerLng, topX, soloActivos);
 
+            // --- EL FIX SENSEI: Validación de resultados ---
+            if (_currentResults == null || _currentResults.Count == 0)
+            {
+                MessageBox.Show("No results found for the selected search filters.",
+                                "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                return; // Salimos aquí para que el formulario se quede en modo Filtro
+            }
+
+            // 4. Si llegamos aquí, sí hay datos: Actualizamos UI y navegamos
             dgResultados.ItemsSource = _currentResults;
 
-            // CORRECCIÓN: Agregamos 'await' aquí
             await LoadMap(_centerLat, _centerLng, _currentResults);
 
             CtrlForm(ViewMode.Results);
+        }
+
+        private void cmbOrigin_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Verificamos que el control esté cargado y tenga selección
+            if (cmbOrigin.SelectedValue != null)
+            {
+                string selected = cmbOrigin.SelectedValue.ToString();
+
+                if (selected == "Staff")
+                {
+                    // Para Staff: habilitamos y marcamos por defecto
+                    chkActive.IsEnabled = true;
+                    chkActive.IsChecked = true;
+                    chkActive.Opacity = 1.0; // Que se vea clarito
+                }
+                else if (selected == "Applicant")
+                {
+                    // Para Applicant: lo deshabilitamos porque no aplica el filtro
+                    chkActive.IsEnabled = false;
+                    chkActive.IsChecked = true; // Lo dejamos marcado pero bloqueado
+                    chkActive.Opacity = 0.5; // Lo ponemos un poco gris para indicar que no aplica
+                }
+            }
         }
 
         private void BtnResetFiltro_Click(object sender, RoutedEventArgs e) => ResetFormState();
@@ -240,19 +286,55 @@ namespace Human_Resources.Forms
 
         private void dgResultados_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Verificamos que haya algo seleccionado
             if (dgResultados.SelectedItem is GeoResult entidad)
             {
-                // En lugar de abrir formularios, usamos la misma lógica del mensaje emergente
+                // 1. Obtenemos las descripciones reales usando tus clases
+                string nombreCiudad = "";
+                string nombreEstado = "";
+
+                try
+                {
+                    // Buscamos la ciudad (usamos el ID que viene en la entidad)
+                    // Nota: Asegúrate de que GeoResult tenga las propiedades IdGeoCity e IdGeoState cargadas
+                    var objCiudad = new ClassGeoCity();
+                    DataTable dtCiudad = objCiudad.ListarPorEstado(entidad.IdGeoState); // Filtramos por su estado
+
+                    // Buscamos la fila específica de la ciudad
+                    DataRow[] filaCiudad = dtCiudad.Select($"Id = {entidad.IdGeoCity}");
+                    if (filaCiudad.Length > 0) nombreCiudad = filaCiudad[0]["Description"].ToString();
+
+                    // Buscamos el estado
+                    var objEstado = new ClassGeoState();
+                    DataTable dtEstado = objEstado.Listar();
+                    DataRow[] filaEstado = dtEstado.Select($"Id = {entidad.IdGeoState}");
+                    if (filaEstado.Length > 0) nombreEstado = filaEstado[0]["Description"].ToString();
+                }
+                catch { /* Manejo de error silencioso o log */ }
+
+                // 2. Construimos la línea de Ciudad, Estado y Zip
+                string ciudadEstadoZip = "";
+                if (!string.IsNullOrWhiteSpace(nombreCiudad)) ciudadEstadoZip += nombreCiudad;
+                if (!string.IsNullOrWhiteSpace(nombreEstado)) ciudadEstadoZip += (ciudadEstadoZip.Length > 0 ? ", " : "") + nombreEstado;
+
+                // Usamos el campo ZipCode que ya tiene la entidad
+                if (!string.IsNullOrWhiteSpace(entidad.ZipCode)) ciudadEstadoZip += (ciudadEstadoZip.Length > 0 ? " " : "") + entidad.ZipCode;
+
+                // 3. Construimos la dirección completa
+                string fullAddress = entidad.Address;
+                if (!string.IsNullOrWhiteSpace(ciudadEstadoZip))
+                {
+                    fullAddress += "\n" + ciudadEstadoZip;
+                }
+
+                // 4. Armamos y mostramos el mensaje final
                 string info = $"NAME: {entidad.Name}\n" +
-                              $"ADDRESS: {entidad.Address}\n" +
+                              $"ADDRESS: {fullAddress}\n" +
                               $"PHONE: {entidad.Phone}\n" +
                               $"EMAIL: {entidad.Email}\n" +
                               $"DISTANCE: {entidad.DistanceMiles:N2} miles";
 
                 MessageBox.Show(info, $"Details - {entidad.EntityType}", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Opcional: Deseleccionar para que el usuario pueda volver a hacer clic
                 dgResultados.SelectedItem = null;
             }
         }
