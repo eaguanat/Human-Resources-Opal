@@ -19,9 +19,13 @@ namespace Human_Resources.Forms
     {
         private byte[] imagenBytes = null; // Para el logo de la compañía
 
+        // Forma segura y sin caracteres extraños
+        public List<string> LetrasDrive { get; set; } = "D:,E:,F:,G:,H:,I:,J:,K:,L:,M:,N:,O:,P:,Q:,R:,S:,T:,U:,V:,W:,X:,Y:,Z:".Split(',').ToList();
+
         public frmCompany()
         {
             InitializeComponent();
+            this.DataContext = this;
             CargarCatalogos(); // Carga los ComboBox de Estados, Ciudades, Regiones
             LoadCompanyData(); // Carga la información de la compañía (ID=1)
             lblTitulo.Text = "COMPANY CONFIGURATION"; // Siempre en modo de edición/configuración
@@ -85,6 +89,12 @@ namespace Human_Resources.Forms
                 // Esto ya lo hace la propiedad MailPasswordHash al ser leída en Obtener()
                 chkEnableSSL.IsChecked = objCompany.EnableSSL ?? false; // Por defecto false si es null
                 txtSenderName.Text = objCompany.SenderName;
+                // Cargar rutas de contratos
+                txtPathTemplates.Text = objCompany.PathTemplates;
+                txtPathContracts.Text = objCompany.PathContracts;
+
+                // Aquí llamamos al "traductor" de datos
+                CargarArchivosDepartamentos();
 
             }
             else
@@ -234,19 +244,31 @@ namespace Human_Resources.Forms
                 MailUsername = txtMailUsername.Text.Trim(),
                 MailPasswordText = pbMailPassword.Password, // Obtener la contraseña de correo del PasswordBox
                 EnableSSL = chkEnableSSL.IsChecked,
-                SenderName = txtSenderName.Text.Trim()
+                SenderName = txtSenderName.Text.Trim(),
+                PathTemplates = txtPathTemplates.Text.Trim(),
+                PathContracts = txtPathContracts.Text.Trim()
             };
 
-            // Si la contraseña del correo no se ha cambiado, necesitamos cargar el hash existente
-            // La lógica en ClassCompany.Guardar() ya maneja esto:
-            // Si MailPasswordText está vacío, intentará usar el MailPasswordHash que se cargó con Obtener().
-            // Si es un nuevo registro y MailPasswordText está vacío, MailPasswordHash será null.
-            // Si se introduce MailPasswordText, se hashea y se usa ese nuevo hash.
+            
 
             if (objCompany.Guardar()) // El método Guardar() se encarga de INSERT/UPDATE
             {
+                // Dentro del botón Update de la compañía
+                var listaArchivos = listDeptFiles.ItemsSource as List<DeptFileVM>;
+                if (listaArchivos != null)
+                {
+                    ClassDepartment objDept = new ClassDepartment();
+                    foreach (var item in listaArchivos)
+                    {
+                        objDept.ActualizarSoloPlantilla(item.Id, item.FileName);
+                    }
+                }
+
+                // Mensaje de éxito y recarga de datos para refrescar la vista
                 MessageBox.Show("Company data saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadCompanyData(); // Recargar los datos para refrescar la vista y el hash de contraseña (dejando PB en blanco)
+
+                // Salimos del Formulario
+                BtnExit_Click(null, null);
             }
             else
             {
@@ -290,5 +312,52 @@ namespace Human_Resources.Forms
                 }
             }
         }
+        // 1. Carga de datos (Dentro de LoadCompanyData o similar)
+        private void CargarArchivosDepartamentos()
+        {
+            // Obtenemos la tabla de la BD
+            DataTable dt = new ClassDepartment().Listar();
+            List<DeptFileVM> lista = new List<DeptFileVM>();
+
+            foreach (DataRow r in dt.Rows)
+            {
+                lista.Add(new DeptFileVM
+                {
+                    Id = Convert.ToInt32(r["Id"]),
+                    Description = r["Description"].ToString(),
+                    // IMPORTANTE: El nombre entre comillas debe ser igual al de tu SELECT en ClassDepartment
+                    FileName = r["ContractTemplateName"]?.ToString() ?? ""
+                });
+            }
+            // Ahora la lista está llena de objetos "inteligentes"
+            listDeptFiles.ItemsSource = lista;
+        }
+
+        // 2. Los eventos que hacen que la experiencia sea "pro"
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox tb)
+            {
+                Dispatcher.BeginInvoke(new Action(() => tb.SelectAll()),
+                    System.Windows.Threading.DispatcherPriority.Input);
+            }
+        }
+
+        private void TextBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBox tb && !tb.IsFocused)
+            {
+                e.Handled = true;
+                tb.Focus();
+            }
+        }
+        // TextBox para editar el nombre del archivo de plantilla de contrato por departamento
+        public class DeptFileVM
+        {
+            public int Id { get; set; }
+            public string Description { get; set; }
+            public string FileName { get; set; } // Este es el que se bindea al TextBox
+        }
+
     }
 }

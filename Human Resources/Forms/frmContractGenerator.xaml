@@ -1,0 +1,181 @@
+﻿<Page x:Class="Human_Resources.Forms.frmContractGenerator"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Human_Resources.Forms"
+      mc:Ignorable="d" 
+      Title="Contract Generator" Background="White">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Cabecera Azul -->
+            <RowDefinition Height="*"/>
+            <!-- Contenido Principal -->
+        </Grid.RowDefinitions>
+
+        <!-- CABECERA -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="15,10">
+            <DockPanel>
+                <TextBlock x:Name="lblTitulo" 
+                           Text="CONTRACT GENERATOR - SELECT STAFF" 
+                           Foreground="White" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <Grid Grid.Row="1" Margin="10">
+            <!-- PANEL DE BÚSQUEDA Y SELECCIÓN DE STAFF -->
+            <Grid x:Name="pnlSearchStaff" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Filtro -->
+                    <RowDefinition Height="*"/>
+                    <!-- DataGrid -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Botones -->
+                </Grid.RowDefinitions>
+
+                <!-- FILTRO DE BÚSQUEDA -->
+                <Border Grid.Row="0" Background="#F8F9FA" BorderBrush="#DEE2E6" BorderThickness="0,0,0,1" Padding="15">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Search Staff Name/Last Name:" 
+                                   FontSize="15"
+                                   VerticalAlignment="Center" 
+                                   Margin="0,0,10,0"/>
+                        <TextBox x:Name="txtSearchStaff" 
+                                 Width="350" Height="25" 
+                                 VerticalContentAlignment="Center" 
+                                 FontSize="15"
+                                 CharacterCasing="Upper" 
+                                 TextChanged="txtSearchStaff_TextChanged"/>
+                        <Button x:Name="BtnSearch" 
+                                Content="_Search" 
+                                Click="BtnSearch_Click"
+                                Width="100" Height="30" 
+                                Style="{StaticResource MenuButtonStyle}"    
+                                FontSize="15"
+                                Background="#2ecc71" Foreground="White" Margin="15,0,5,0"/>
+                        <Button x:Name="BtnExitSearch" 
+                                Content="_Exit" 
+                                Click="BtnExit_Click"
+                                Width="100" Height="30" 
+                                Style="{StaticResource MenuButtonStyle}"    
+                                FontSize="15"
+                                Background="#95a5a6" Foreground="White" Margin="5,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- DATAGRID DE RESULTADOS DE STAFF -->
+                <Grid x:Name="GridStaffResults" Grid.Row="1" Visibility="Collapsed" Margin="0,10,0,0">
+                    <DataGrid x:Name="dgStaffResults" 
+                              AutoGenerateColumns="False" 
+                              IsReadOnly="True" 
+                              SelectionMode="Single"
+                              Background="Transparent" 
+                              BorderThickness="0" 
+                              GridLinesVisibility="None"
+                              HeadersVisibility="Column" 
+                              FontSize="16" 
+                              RowHeight="25"
+                              AlternationCount="2"
+                              RowBackground="White"
+                              AlternatingRowBackground="#F9F9FB">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="2*"/>
+                            <DataGridTextColumn Header="First Name" Binding="{Binding Name}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+
+                <!-- BOTONES DE SELECCIÓN DE STAFF -->
+                <StackPanel x:Name="pnlStaffSelectionButtons" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0" Visibility="Collapsed">
+                    <Button x:Name="BtnSelectStaff" 
+                            Content="_Select" 
+                            Click="BtnSelectStaff_Click"
+                            Width="120" Height="35" 
+                            Style="{StaticResource MenuButtonStyle}"    
+                            FontSize="15"
+                            Background="#3498db" Foreground="White" Margin="5"/>
+                    <Button x:Name="BtnHomeSearch" 
+                            Content="_Home" 
+                            Click="BtnHomeSearch_Click"
+                            Width="120" Height="35" 
+                            Style="{StaticResource MenuButtonStyle}"    
+                            FontSize="15"
+                            Background="#95a5a6" Foreground="White" Margin="5"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- PANEL DE VALIDACIÓN DE DATOS Y OPCIONES DE IMPRESIÓN -->
+            <Grid x:Name="pnlValidationPrint" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Título Staff -->
+                    <RowDefinition Height="*"/>
+                    <!-- ListBox de Validacion -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Botones de Impresión -->
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="txtStaffFullNameHeader" 
+                           Grid.Row="0"
+                           Text="Verify that the information is correct." 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="Red"
+                           HorizontalAlignment="Left" 
+                           Margin="0,0,0,15"/>
+
+                <ListBox x:Name="lstValidationResults" 
+                         Grid.Row="1"
+                         BorderThickness="1" BorderBrush="#DEE2E6" Background="#F8F9FA"
+                         Margin="0,0,0,20"
+                         SelectionMode="Single"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Center"
+                         FontSize="14">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <!-- Icono -->
+                                    <ColumnDefinition Width="200"/>
+                                    <!-- Descripción -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Valor -->
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding StatusIcon}" Margin="0,0,10,0" FontWeight="Bold" FontSize="16"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Description}" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Value}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- BOTONES DE IMPRESIÓN -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0">
+                    <Button x:Name="BtnPrint" 
+                            Content="_Print" 
+                            Click="BtnPrint_Click"
+                            Width="120" Height="40" 
+                            Style="{StaticResource MenuButtonStyle}"    
+                            FontSize="16"
+                            Background="#2ecc71" Foreground="White" Margin="5" IsEnabled="False"/>
+                    <Button x:Name="BtnBackToSearch" 
+                            Content="_Back" 
+                            Click="BtnBackToSearch_Click"
+                            Width="120" Height="40" 
+                            Style="{StaticResource MenuButtonStyle}"    
+                            FontSize="16"
+                            Background="#95a5a6" Foreground="White" Margin="5"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

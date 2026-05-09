@@ -177,7 +177,10 @@ namespace Human_Resources
         {
             AbrirFormulario("Staff Documents Additional", new Forms.frmStaffDocsAdditional());
         }
-
+        private void BtnFrmContractGenerator_Click(object sender, RoutedEventArgs e)
+        {
+            AbrirFormulario("Contract Generator", new Forms.frmContractGenerator());
+        }
 
         // FIND STAFF
         private void BtnFrmFindStaff_Click(object sender, RoutedEventArgs e)

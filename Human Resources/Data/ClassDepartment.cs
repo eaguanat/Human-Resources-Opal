@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-
 namespace Human_Resources.Data
 {
     public class ClassDepartment
@@ -15,7 +14,8 @@ namespace Human_Resources.Data
         // Propiedades
         public int Id { get; set; }
         public string Description { get; set; }
-        public int? Supervision { get; set; } // ¡NUEVA PROPIEDAD! (int? para permitir nulls)
+        public int? Supervision { get; set; }
+        public string ContractTemplateName { get; set; } // ¡NUEVA PROPIEDAD!
 
         // 1. LISTAR
         public DataTable Listar()
@@ -25,8 +25,8 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // ¡Consulta actualizada para incluir Supervision!
-                    string query = "SELECT Id, Description, Supervision FROM tblDepartment ORDER BY Description";
+                    // Consulta actualizada para incluir ContractTemplateName
+                    string query = "SELECT Id, Description, Supervision, ContractTemplateName FROM tblDepartment ORDER BY Description";
                     SqlDataAdapter da = new SqlDataAdapter(query, con);
                     da.Fill(dt);
                 }
@@ -45,10 +45,10 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // ¡Consulta actualizada para incluir Supervision!
-                    string query = "INSERT INTO tblDepartment (Description, Supervision) VALUES (@desc, @supervision)";
+                    // Consulta actualizada para incluir ContractTemplateName
+                    string query = "INSERT INTO tblDepartment (Description, Supervision, ContractTemplateName) VALUES (@desc, @supervision, @template)";
                     SqlCommand cmd = new SqlCommand(query, con);
-                    SetParameters(cmd); // Usamos el nuevo método SetParameters
+                    SetParameters(cmd);
                     con.Open();
                     return cmd.ExecuteNonQuery() > 0;
                 }
@@ -67,11 +67,11 @@ namespace Human_Resources.Data
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // ¡Consulta actualizada para incluir Supervision!
-                    string query = "UPDATE tblDepartment SET Description = @desc, Supervision = @supervision WHERE Id = @id";
+                    // Consulta actualizada para incluir ContractTemplateName
+                    string query = "UPDATE tblDepartment SET Description = @desc, Supervision = @supervision, ContractTemplateName = @template WHERE Id = @id";
                     SqlCommand cmd = new SqlCommand(query, con);
-                    cmd.Parameters.AddWithValue("@id", this.Id); // El ID es necesario para el WHERE
-                    SetParameters(cmd); // Usamos el nuevo método SetParameters
+                    cmd.Parameters.AddWithValue("@id", this.Id);
+                    SetParameters(cmd);
                     con.Open();
                     return cmd.ExecuteNonQuery() > 0;
                 }
@@ -83,7 +83,7 @@ namespace Human_Resources.Data
             }
         }
 
-        // 4. ELIMINAR (No necesita cambios)
+        // 4. ELIMINAR (Sin cambios)
         public bool Eliminar(int idEliminar)
         {
             try
@@ -104,17 +104,16 @@ namespace Human_Resources.Data
             }
         }
 
-        // 5. VALIDACIÓN DE INTEGRIDAD (No necesita cambios, pero revisa si otros módulos usan Department)
+        // 5. VALIDACIÓN DE INTEGRIDAD (Sin cambios)
         public bool EstaEnUso(int idValidar)
         {
             try
             {
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
-                    // Verificamos si esta en uso tablas de Staff y tblApplicants
                     string query = @"SELECT 
                         (SELECT COUNT(*) FROM tblStaff WHERE idDepartment = @id) +
-                        (SELECT COUNT(*) FROM tblApplicants WHERE idDepartment = @id)"; // Añadido tblApplicants
+                        (SELECT COUNT(*) FROM tblApplicants WHERE idDepartment = @id)";
 
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@id", idValidar);
@@ -127,17 +126,44 @@ namespace Human_Resources.Data
             catch (Exception ex)
             {
                 MessageBox.Show("Integrity check error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return true; // Por seguridad bloqueamos el borrado si falla la consulta
+                return true;
+            }
+        }
+
+        // Nuevo método para actualizar SOLO el nombre del archivo del contrato
+        public bool ActualizarSoloPlantilla(int idDepto, string nombreArchivo)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+                {
+                    // Solo modificamos la columna del contrato filtrando por el ID
+                    string query = "UPDATE tblDepartment SET ContractTemplateName = @template WHERE Id = @id";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@id", idDepto);
+                    // Si el nombre viene vacío, mandamos DBNull a la base de datos
+                    cmd.Parameters.AddWithValue("@template", (object)nombreArchivo ?? DBNull.Value);
+
+                    con.Open();
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error updating template name: " + ex.Message, "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
         }
 
         /// <summary>
-        /// Método Helper para establecer los parámetros comunes.
+        /// Método Helper actualizado para incluir el nombre de la plantilla.
         /// </summary>
         private void SetParameters(SqlCommand cmd)
         {
             cmd.Parameters.AddWithValue("@desc", (object)this.Description ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@supervision", (object)this.Supervision ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@template", (object)this.ContractTemplateName ?? DBNull.Value);
         }
     }
 }

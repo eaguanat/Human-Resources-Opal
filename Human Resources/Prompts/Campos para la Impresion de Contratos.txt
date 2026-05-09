@@ -1,0 +1,83 @@
+CAMPOS DEL STAFF:
+txt_FullName = tblStaff[Name] + tblStaff[LastName]
+txt_FirstName = tblStaff[Name]
+Txt_LastName = tblStaff-[LastName]
+txt_Address = tblStaff[Address]
+txt_City = (tblStaff[idGeoCity] -> tblGeoCity[id]) tblGeoCity[Description]
+txt_State = (tblStaff[idGeoState] -> tblGeoState[id]) tblGeoState[Description]
+txt_ZipCode = tblZipCod
+txt_City_State_ZipCode =  txt_City + ", " + txt_State + ", " + txt_ZipCode
+txt_FullAddress = txt_Address + ", " + txt_City_State_ZipCode
+txt_Phone = tblStaff[Phone]
+txt_Social = tblStaff[Social]
+txt_email = tblStaff[Email]
+txt_BirthDay = tblStaff[Birthday]
+
+
+txt_Title = (tblStaff[Id] -> tblStaffLicense[idStaff]) -> (tblStaffLicense[idDepLicense] -> tblDepLicense[id])  tblDepLicense[Description]
+
+txt_LicenseNro = (tblStaff[Id] -> tblStaffLicense[idStaff]) -> tblStafLicense[LicenseNumber]    
+
+
+
+CAMPOS COMPANY
+
+Txt_CIA_Name = tblCompany[Name]
+txt_CIA_Address = tblCompany[Address]
+
+txt_CIA_City = (tblCompany[idGeoCity] -> tblGeoCity[id]) tblGeoCity[Description]
+txt_CIA_State = (tblCompany[idGeoState] -> tblGeoState[id]) tblGeoState[Description]
+txt_CIA_ZipCode = tblZipCode
+txt_CIA_City_State_ZipCode =  txt_CIA_City + ", " + txt_CIA_State + ", " + txt_CIA_ZipCode
+txt_CIA_FullAddress = txt_CIA_Address + ", " + txt_CIA_City_State_ZipCode
+
+
+
+
+*** ANALISIS ****
+📋 ROADMAP: MÓDULO DE IMPRESIÓN AUTOMATIZADA (LTC/NURSING)
+1. OBJETIVO PRINCIPAL
+Generar la impresión física del paquete de contratación (50+ páginas) inyectando datos de SQL directamente en campos de un formulario PDF, sin guardar archivos en disco y garantizando que la información esté completa antes de permitir la impresión.
+
+2. COMPONENTES DEL FRONTEND (WPF)
+Ventana de Validación (Checklist): * Interfaz de solo lectura que compara los campos requeridos del PDF con la base de datos.
+
+Indicadores visuales: ✅ (Dato presente) / ❌ (Dato faltante).
+
+Regla de Oro: Si hay un ❌, el botón "Print" se bloquea. El usuario debe ir a frmStaff a corregir para asegurar la integridad de la base de datos.
+
+Botón "Print Package": Envío directo a la cola de impresión del sistema.
+
+3. COMPONENTES DEL BACKEND (C# / .NET)
+Librería Técnica: iText7 (Manejo de AcroForms) + System.Printing.
+
+Motor de Inyección: * Uso de MemoryStream para procesar el PDF en RAM (Cero basura en disco).
+
+Función de Flattening: Convierte los campos en texto fijo antes de imprimir.
+
+Diccionario de Mapeo: Vinculación exacta entre nombres de SQL y nombres de campos en Adobe:
+
+Ejemplo: txt_Social (PDF) ↔ tblStaff[Social] (SQL).
+
+4. CAMPOS CLAVE A INTEGRAR
+Staff: Nombre Completo, Dirección (Full Address), SSN, Teléfono, Email, Fecha de Nacimiento.
+
+Licencias: Título (CNA/HHA) y Número de Licencia.
+
+Company: Nombre de la Agencia y Dirección completa (desde la configuración de ClassCompany).
+
+5. FLUJO DE TRABAJO (USER EXPERIENCE)
+Selección: Seleccionar empleado en la lista de Staff.
+
+Validación: Abrir ventana de checklist (Verificar que todo esté ✅).
+
+Impresión: Click en Print -> El paquete sale por la impresora -> Se cierra la ventana automáticamente.
+
+Pendiente para el retorno: 1.  Instalar itext7 vía NuGet.
+2.  Crear la clase PdfEngine.cs con el diccionario de mapeo.
+3.  Diseñar el XAML de la ventana de validación.
+
+¡Todo listo para retomar cuando vuelvas, Sensei! Buen viaje.
+
+
+

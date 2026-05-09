@@ -1,0 +1,267 @@
+Vamos a elaborar un nuevo Formulario que llamaremos "frmContractGenerator" primero para darte el contexto es tomar un documento.pdf ya existente y le asignamos unos campos con "Adobe PREPARAR FORMULARIO" para su llenado automatico o por lo menos el llenado parcial del documento donde consideramos que es informacion redundate y la idea es ganar tiempo, sabemos que existe otra que Debera ser llenada a puño y letra. Es algo simple llamamo a la persona que le queremos hacer el contrato, seleccionamos a la indicada, poteriormente verificamos la integridad de la informacion y por ultimo realizamos la impression del documento.
+
+A continuacion mi analisis: 
+
+Estos son los campos que necesitamos crear para el PDF y estos campo antes de imprimir debemos verificar que los tengamos. En el caso de que no los tengamos el documento no se podra imprimir.
+
+En estos campos te los estructure de la siguiente manera para darte contexto: (Ejemplo)
+
+txt_Nombre_del_Campo = Nobre_de_la_Tabla[Columna]
+
+En el caso de que necesite concatenar mas informacion como el caso de las direcciones: (Ejemplo)
+
+txt_Nombre_del_Campo = Tabla[Columna] + Tabla[Columna]
+
+Si ya tenemos informacion asignada a una variable procedemos a concatenarla: (Ejemplo)
+
+txt_Nombre_del_Campo = txt_Nombre_del_Campo1 + ", " + txt_Nombre_del_Campo2
+
+A continuacion te indico como se van a llamar las variable o campo que cree en la "Adobe PREPARACION DE FORMULARIO" para su correcto llendo.
+
+
+
+****  CAMPOS CLAVE A INTEGRAR *****
+
+CAMPOS DEL STAFF:
+txt_FullName = tblStaff[Name] + tblStaff[LastName]
+txt_FirstName = tblStaff[Name]
+Txt_LastName = tblStaff-[LastName]
+txt_Address = tblStaff[Address]
+txt_City = (tblStaff[idGeoCity] -> tblGeoCity[id]) tblGeoCity[Description]
+txt_State = (tblStaff[idGeoState] -> tblGeoState[id]) tblGeoState[Description]
+txt_ZipCode = tblZipCod
+txt_City_State_ZipCode =  txt_City + ", " + txt_State + ", " + txt_ZipCode
+txt_FullAddress = txt_Address + ", " + txt_City_State_ZipCode
+txt_Phone = tblStaff[Phone]
+txt_Social = tblStaff[Social]
+txt_email = tblStaff[Email]
+txt_BirthDay = tblStaff[Birthday]
+
+
+txt_Title = (tblStaff[Id] -> tblStaffLicense[idStaff]) -> (tblStaffLicense[idDepLicense] -> tblDepLicense[id])  tblDepLicense[Description]
+
+txt_LicenseNro = (tblStaff[Id] -> tblStaffLicense[idStaff]) -> tblStafLicense[LicenseNumber]    
+
+
+CAMPOS COMPANY
+
+Txt_CIA_Name = tblCompany[Name]
+txt_CIA_Address = tblCompany[Address]
+
+txt_CIA_City = (tblCompany[idGeoCity] -> tblGeoCity[id]) tblGeoCity[Description]
+txt_CIA_State = (tblCompany[idGeoState] -> tblGeoState[id]) tblGeoState[Description]
+txt_CIA_ZipCode = tblZipCode
+txt_CIA_City_State_ZipCode =  txt_CIA_City + ", " + txt_CIA_State + ", " + txt_CIA_ZipCode
+txt_CIA_FullAddress = txt_CIA_Address + ", " + txt_CIA_City_State_ZipCode
+
+
+Es muy importante utilizar las clases que hemos creado con anterioridad paa cada una de las tablas, una premisa importante es reutilizar el codigo creado. Elemplo:
+
+tblStaff    => Usamos su clase "ClassStaff"
+tblGeoState => Usamos su clase "ClassGeoState"
+tblGeoCity  => Usamos su clase "ClassGeoCity"
+tblCompany  => Usamos su clase "ClassCompany"; etc.
+
+
+
+*** ANALISIS ****
+📋 ROADMAP: MÓDULO DE IMPRESIÓN AUTOMATIZADA (LTC/NURSING)
+1. OBJETIVO PRINCIPAL
+Generar la impresión física del paquete de contratación (53+ páginas) inyectando datos de SQL directamente en campos de un formulario PDF, sin guardar archivos en disco y garantizando que la información esté completa antes de permitir la impresión.
+
+2. COMPONENTES DEL FRONTEND (WPF)
+Ventana de Validación (Checklist): * Interfaz de solo lectura que compara los campos requeridos del PDF con la base de datos.
+
+Indicadores visuales: ✅ (Dato presente) / ❌ (Dato faltante).
+
+Regla de Oro: Si hay un ❌, el botón "Print" se bloquea. El usuario debe ir a frmStaff a corregir para asegurar la integridad de la base de datos.
+
+Botón "Print Package": Envío directo a la cola de impresión del sistema.
+
+3. COMPONENTES DEL BACKEND (C# / .NET)
+Librería Técnica: iText7 (Manejo de AcroForms) + System.Printing.
+
+Motor de Inyección: * Uso de MemoryStream para procesar el PDF en RAM (Cero basura en disco).
+
+Función de Flattening: Convierte los campos en texto fijo antes de imprimir.
+
+Diccionario de Mapeo: Vinculación exacta entre nombres de SQL y nombres de campos en Adobe:
+
+Ejemplo: txt_Social (PDF) ↔ tblStaff[Social] (SQL).
+
+4. CAMPOS CLAVE A INTEGRAR
+Estos los detallamos en "****  CAMPOS CLAVE A INTEGRAR *****" 
+
+5. FLUJO DE TRABAJO (USER EXPERIENCE)
+Selección: Seleccionar empleado en la lista de Staff.
+
+Debe aparecer un campo "Search Name/LastName:" para localizar al empleado ya sea po su nombre o apellido. Seguido de dos botones [Search] (Para buscara la persona) y [Exit] (Salir del Formulario)
+
+Nota: cuando pulse [Search] esta area se pocra ver pero no se podra editar.
+
+El mostrara un DataGrid que llamaremos "dgResultados" donde nos mostrara 2 columnas [LastName] y [FirstName]
+
+Debejo de ese DataGrid deberan aparecer 2 botones [Select] (Para seleccionar la persona) y [Home] Para retornar al principio.
+
+Nota: Esta area se mostrara solo si consigue coincidencias con la busqueda. En el caso de que no consiga informacion mostrara un mensaje y retorna al inicio. Si hay coincidencias mostrara con sus respectivos botones. 
+
+Una vez Seleccionado el empleado para realizar el contrato nos presentara un nuevo cuadro de dialogo donde ocuparemos toda la pantalla con el nombre de la persona seleccionada (FullName) como titulo y un List con cada uno de los campos que detalle en la Seccion: "****  CAMPOS CLAVE A INTEGRAR *****"; "CAMPOS DEL STAFF"
+
+Solo los campos de que aparecen en "CAMPOS DEL STAFF" ya que asumimos que los datos de la empresa (tblCompany) asumiremos que estan estan perfectos.
+
+La estructura del List contendra la siguiente estructura
+
+*Estructura del List*
+Status + Descripcion del Campo + Informacion de la tabla
+
+*Informacion Contenida en el List*
+Si el campo (Tabla[Columna]) posee informacion en el "Status" mostrara ✅ y si el campo (Tabla[Columna]) no posee informacion mostrara ❌.
+
+Si todos los campos  (Tabla[Columna]) poseen informacion podemos habilitar en boton de impression. En el caso de que exista un campo ❌ no se podra imprimir.
+
+El diseño de esta Area Poseera un titulo del Nombre Completo de la persona seleccionada previamente, el List (*Estructura del List*)
+y dos botones [Print] (Para imprimir el documento) y [Back] (para retornar a la pantalla anterior donde estan las personas localizadas en la busqueda)
+
+
+Impresión: Click en Print -> El paquete sale por la impresora -> Se cierra la ventana automáticamente y se va al "Home del Formulario".
+
+Pendiente para el retorno: 
+1.  Instalar itext7 vía NuGet.
+2.  Crear la clase PdfEngine.cs con el diccionario de mapeo.
+3.  Diseñar el XAML de la ventana de validación.
+
+Es importante que este formulario Utilice toda la pantalla disponible y se ajuste si esta maximizada o no.
+
+
+*** Tablas que Utilizaremos ***
+
+1. tblCompany. Esta tabla contiene la informacion de la Empresa y los Path de donde esta el "documento.pdf" que vamos a imprimir.
+   Esta es su estructura:
+
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[idGeoRegion] [int] NULL,
+	[Name] [nvarchar](50) NULL,
+	[Address] [nvarchar](50) NULL,
+	[idGeoState] [int] NULL,
+	[idGeoCity] [int] NULL,
+	[ZipCode] [nvarchar](5) NULL,
+	[Phone] [nvarchar](20) NULL,
+	[Email] [nvarchar](50) NULL,
+	[Logo] [varbinary](max) NULL,
+	[MailServer] [nvarchar](100) NULL,
+	[MailPort] [int] NULL,
+	[MailUsername] [nvarchar](100) NULL,
+	[MailPassword] [nvarchar](255) NULL,
+	[EnableSSL] [bit] NULL,
+	[SenderName] [nvarchar](100) NULL,
+	[PathTemplates] [nvarchar](255) NULL,
+	[PathContracts] [nvarchar](255) NULL
+
+Clase a Utilizar: "ClassCompany"
+
+
+Esta tabla contiene la informacion de la Empresa y ubicacion del documento a imprimir
+[Name]          = Nombre de la Empresa
+[Address]       = Direccion
+[idGeoState]    = Clave Primaria de "tblGeoState"
+[idGeoCity]     = Clave Primaria de "tblGeoCity"
+[ZipCode]       = Zip Code
+[PathTemplates] = Path Drive. Ejemplo "G:"
+[PathContracts] = Path. Ejemplo "\Visual Basic\Human Resources\Aplicaciones PDF\"
+
+
+2. tblStaff. Esta es la tabla que tiene la informacion de del personal de la empresa y esta es su estructura:
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [nvarchar](25) NULL,
+	[LastName] [nvarchar](25) NULL,
+	[IdDepartment] [int] NULL,
+	[Birthday] [date] NULL,
+	[AppDay] [date] NULL,
+	[HiredDay] [date] NULL,
+	[EndDay] [date] NULL,
+	[Address] [nvarchar](80) NULL,
+	[IdGeoRegion] [int] NULL,
+	[idGeoState] [int] NULL,
+	[idGeoCity] [int] NULL,
+	[ZipCod] [nvarchar](5) NULL,
+	[Phone] [nvarchar](20) NULL,
+	[Email] [nvarchar](50) NULL,
+	[ContactPersonA] [nvarchar](40) NULL,
+	[ContactPhoneA] [nvarchar](20) NULL,
+	[ContactPersonB] [nvarchar](40) NULL,
+	[ContactPhoneB] [nvarchar](20) NULL,
+	[idDocsPayroll] [int] NULL,
+	[CompanyName] [nvarchar](40) NULL,
+	[idBanks] [int] NULL,
+	[idBanksMethod] [int] NULL,
+	[AccountNumber] [nvarchar](30) NULL,
+	[RoutingNumber] [nvarchar](30) NULL,
+	[idDocsInmigration] [int] NULL,
+	[Social] [nchar](15) NULL,
+	[JobDes] [nvarchar](30) NULL,
+	[Rate] [decimal](18, 2) NULL,
+	[Active] [bit] NULL,
+	[Latitude] [decimal](9, 6) NULL,
+	[Longitude] [decimal](9, 6) NULL
+
+Clase a Utilizar: "ClassStaff"
+
+
+Esta tabla contiene la informacion del Personal
+[Name]         = Nombre de la Empresa
+[Address]      = Direccion
+[idGeoState]   = Clave Primaria de "tblGeoState"
+[idGeoCity]    = Clave Primaria de "tblGeoCity"
+[ZipCod]       = Zip Code
+[Phone]        = Telefono
+[Email]        = Coreeo Electronico
+[Social]       = Numero de seguridad Social (SSN)
+[Birthday]     = Fecha de Nacimiento
+[idDepartment] = Clave Primaria de "tblDepartment"
+
+
+3. tblStaffLicense. En esta es donde vamos a localizar la Licencia del Trabajador y el numero de Lisencia. 
+   
+   Esta es su estructura:
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[idStaff] [int] NULL,
+	[idDepLicense] [int] NULL,
+	[LicenseNumber] [nvarchar](30) NULL
+
+Clase a Utilizar: "ClassStaffLicense"
+
+
+[idStaff]       = Clave Primaria de "tblStaff"
+[idDepLicense]  = Clave Primaria de "tblDepLicense"
+[LicenseNumber] = Numero de Lisencia
+
+
+4. tblDepartment. En esta tenemos la informacion de los Departamentos
+
+   Esta es su estructura:
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[Description] [nvarchar](50) NULL,
+	[supervision] [tinyint] NULL,
+	[ContractTemplateName] [nvarchar](100) NULL
+
+Clase a Utilizar: "ClassDepartment"
+
+[ContractTemplateName] = Nombre del Documento.pdf a Imprimir
+
+5. tblDepLicense. Aqui tenemos los tipo de Licencias que existen por Departamento.
+
+NOTA: si la persona posse registrada varias licencias se tomara solo que posea Numero de Licencia tblStaffLicense[LicenseNumber] y la primera que consiga con esta condicion. Si no tiene tblStaffLicense[LicenseNumber] asumimos que no posee y por lo tanto sera ❌
+
+   Esta es su estructura:
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[idDepartment] [int] NULL,
+	[Description] [nvarchar](50) NULL
+
+Clase a Utilizar: "ClassDepLicense"
+
+[idDepartment] = Clave Primaria de "tblDepLicense"
+[Description]  = Nombre o Descripcion de la Licencia
+
+
+El diseño o FrontEnd debe parmecer con el mismo estilo (Diseño de botones, colores, tipo de fuente, etc) debe acupar toda la pantalla y reorganizarce si la ventana se redimensiona.
+

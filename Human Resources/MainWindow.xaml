@@ -130,8 +130,11 @@
                                 </Grid>
                             </Button>
                             <StackPanel x:Name="pnlSubMenuStaffPost" Visibility="Collapsed" Background="#3E4249">
-                                <Button Content="  ⭕ Documents" Style="{StaticResource SubMenuButtonStyle}"              Margin="20,0,0,0" Click="BtnFrmStaffDocsRequired_Click"/>
-                                <Button Content="  ⭕ Docs Additional" Style="{StaticResource SubMenuButtonStyle}"        Margin="20,0,0,0" Click="BtnFrmStaffDocsAditional_Click"/>
+                                <Button Content="  ⭕ Documents" Style="{StaticResource SubMenuButtonStyle}"          Margin="20,0,0,0" Click="BtnFrmStaffDocsRequired_Click"/>
+                                <Button Content="  ⭕ Docs Additional" Style="{StaticResource SubMenuButtonStyle}"    Margin="20,0,0,0" Click="BtnFrmStaffDocsAditional_Click"/>
+                                <Separator Background="#DCDCDC" Height="1" Margin="5,2" />
+                                <Button Content="  ⭕ Contract Generator" Style="{StaticResource SubMenuButtonStyle}" Margin="20,0,0,0" Click="BtnFrmContractGenerator_Click"/>
+                                
                             </StackPanel>
                         </StackPanel>
 
