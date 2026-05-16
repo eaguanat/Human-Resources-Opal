@@ -419,52 +419,29 @@ namespace Human_Resources.Data
         }
 
 
-
-
-
-
-        public DataTable XXXFiltrarPersonal(int idDepartment, string name, int idRegion, bool soloActivos, int idState, int idCity, string zip, int idLicense, int idPayroll, int idBank, int idMethod, int idInmigration)
+        public DataTable ListarParaContratos(string filtro = "")
         {
             DataTable dt = new DataTable();
-            string query = "SELECT * FROM tblStaff S WHERE S.idDepartment = @idDept";
-
-            // Filtros dinámicos
-            if (soloActivos) query += " AND S.Active = 1";
-            if (!string.IsNullOrEmpty(name)) query += " AND (S.Name LIKE @name OR S.LastName LIKE @name)";
-            if (idRegion > 0) query += " AND S.idGeoRegion = @idRegion";
-            if (idState > 0) query += " AND S.idGeoState = @idState";
-            if (idCity > 0) query += " AND S.idGeoCity = @idCity";
-            if (!string.IsNullOrEmpty(zip)) query += " AND S.ZipCod = @zip";
-            if (idPayroll > 0) query += " AND S.idDocsPayroll = @idPayroll";
-            if (idBank > 0) query += " AND S.idBanks = @idBank";
-            if (idMethod > 0) query += " AND S.idBanksMethod = @idMethod";
-            if (idInmigration > 0) query += " AND S.idDocsInmigration = @idInmigration";
-
-            // La cirugía de la Licencia (WHERE EXISTS)
-            if (idLicense > 0)
+            try
             {
-                query += " AND EXISTS (SELECT 1 FROM tblStaffLicense SL WHERE SL.idStaff = S.id AND SL.idDepLicense = @idLicense)";
+                using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+                {
+                    // Usamos LEFT JOIN para que, si un staff no tiene depto asignado, igual aparezca
+                    string query = @"SELECT SN.id, SN.Name, SN.LastName, 
+                                    D.Description as DepartmentName
+                             FROM tblStaff SN
+                             LEFT JOIN tblDepartment D ON SN.idDepartment = D.id
+                             WHERE SN.Name LIKE @f OR SN.LastName LIKE @f
+                             ORDER BY SN.LastName, SN.Name";
+
+                    SqlDataAdapter da = new SqlDataAdapter(query, con);
+                    da.SelectCommand.Parameters.AddWithValue("@f", "%" + filtro + "%");
+                    da.Fill(dt);
+                }
             }
-
-            query += " ORDER BY LastName, Name";
-
-            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            catch (Exception ex)
             {
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@idDept", idDepartment);
-                cmd.Parameters.AddWithValue("@name", "%" + name + "%");
-                cmd.Parameters.AddWithValue("@idRegion", idRegion);
-                cmd.Parameters.AddWithValue("@idState", idState);
-                cmd.Parameters.AddWithValue("@idCity", idCity);
-                cmd.Parameters.AddWithValue("@zip", zip ?? "");
-                cmd.Parameters.AddWithValue("@idLicense", idLicense);
-                cmd.Parameters.AddWithValue("@idPayroll", idPayroll);
-                cmd.Parameters.AddWithValue("@idBank", idBank);
-                cmd.Parameters.AddWithValue("@idMethod", idMethod);
-                cmd.Parameters.AddWithValue("@idInmigration", idInmigration);
-
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-                da.Fill(dt);
+                MessageBox.Show("Database Error (ListarParaContratos): " + ex.Message);
             }
             return dt;
         }

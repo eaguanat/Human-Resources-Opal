@@ -1,14 +1,15 @@
-﻿using System;
+﻿using iText.Forms; // <--- Esta es la más importante para AcroForm
+using iText.Kernel.Pdf;
+using System;
 using System.Collections.Generic;
+using System.Data; // Necesario para DataRow y Field<T>
+using System.Diagnostics; // Para Process.Start para imprimir
+using System.Drawing.Printing; // Para la impresión (puede que no sea estrictamente necesario con Process.Start)
 using System.IO;
 using System.Linq;
 using System.Windows; // Para MessageBox, aunque idealmente se lanza excepción
-using iText.Kernel.Pdf;
-using iText.Forms; // <--- Esta es la más importante para AcroForm
-using iText.Forms.Fields;
-using System.Drawing.Printing; // Para la impresión (puede que no sea estrictamente necesario con Process.Start)
-using System.Diagnostics; // Para Process.Start para imprimir
-using System.Data; // Necesario para DataRow y Field<T>
+using System.Threading.Tasks;
+
 
 namespace Human_Resources.Data
 {
@@ -271,104 +272,103 @@ namespace Human_Resources.Data
         }
 
 
-        /// <summary>
-        /// Genera y rellena el PDF, y lo envía a la impresora predeterminada.
-        /// </summary>
-        /// <param name="pdfFields">Diccionario de campos a rellenar.</param>
-        /// <returns>True si la impresión fue exitosa.</returns>
+
+
+
+
+
+
         public bool PrintPdfContract(Dictionary<string, string> pdfFields)
         {
+            // 1. VALIDACIÓN
+            if (CompanyData == null || StaffData == null || DepartmentData == null) return false;
+
+            // 2. RUTAS
+            string templatesPath = CompanyData.PathTemplates ?? "";
+            string contractsPath = CompanyData.PathContracts ?? "";
+            string templateFileName = DepartmentData.ContractTemplateName ?? "";
+            string fullTemplatePath = Path.Combine(templatesPath, contractsPath, templateFileName);
+
+            string outputFileName = $"Temp_{StaffData.LastName}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+            string fullOutputPath = Path.Combine(templatesPath, contractsPath, outputFileName);
+
+            if (!File.Exists(fullTemplatePath)) return false;
+
             try
             {
-                // 1. VALIDACIÓN PREVIA DE OBJETOS
-                if (CompanyData == null) { MessageBox.Show("Company data is not loaded.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return false; }
-                if (StaffData == null) { MessageBox.Show("Staff data is not selected.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return false; }
-                if (DepartmentData == null) { MessageBox.Show("Department data is missing for this staff.", "Error", MessageBoxButton.OK, MessageBoxImage.Error); return false; }
-
-                // 2. OBTENER RUTAS
-                string templatesPath = CompanyData.PathTemplates ?? "";
-                string contractsPath = CompanyData.PathContracts ?? "";
-                string templateFileName = DepartmentData.ContractTemplateName ?? "";
-
-                // 3. VALIDACIÓN DE RUTAS Y ARCHIVOS
-                if (string.IsNullOrWhiteSpace(templatesPath) || !Directory.Exists(templatesPath))
+                // --- A. GENERACIÓN (iText 7) ---
+                using (PdfReader reader = new PdfReader(fullTemplatePath))
+                using (PdfWriter writer = new PdfWriter(fullOutputPath))
                 {
-                    MessageBox.Show($"Templates path is invalid or inaccessible:\n{templatesPath}", "Path Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
+                    // SetSmartMode ayuda a que el PDF de 53 páginas no se corrompa
+                    writer.SetSmartMode(true);
 
-                if (string.IsNullOrWhiteSpace(contractsPath) || !Directory.Exists(contractsPath))
-                {
-                    MessageBox.Show($"Output contracts path does not exist:\n{contractsPath}", "Path Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-
-                if (string.IsNullOrWhiteSpace(templateFileName))
-                {
-                    MessageBox.Show("The department has no PDF template assigned.", "Template Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return false;
-                }
-
-                // Full Path - Usando tu lógica de concatenación directa
-                string fullTemplatePath = $"{templatesPath}{contractsPath}{templateFileName}";
-
-                if (!File.Exists(fullTemplatePath))
-                {
-                    MessageBox.Show($"PDF File not found at:\n{fullTemplatePath}", "File Error", MessageBoxButton.OK, MessageBoxImage.Stop);
-                    return false;
-                }
-
-                // 4. GENERACIÓN EN MEMORIA
-                string outputFileName = $"Contract_{StaffData.LastName}_{StaffData.Name}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
-                // Importante: usamos la misma lógica de "Full Path" para el archivo de salida
-                string fullOutputPath = $"{templatesPath}{contractsPath}{outputFileName}";
-
-                using (var originalPdfStream = new FileStream(fullTemplatePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var outputMemoryStream = new MemoryStream())
-                {
-                    using (PdfReader pdfReader = new PdfReader(originalPdfStream))
-                    using (PdfWriter pdfWriter = new PdfWriter(outputMemoryStream))
-                    using (PdfDocument pdfDocument = new PdfDocument(pdfReader, pdfWriter))
+                    using (PdfDocument pdfDoc = new PdfDocument(reader, writer))
                     {
-                        PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDocument, true);
-                        if (form == null)
-                        {
-                            MessageBox.Show("The PDF does not have interactive fields (AcroForms).", "PDF Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return false;
-                        }
+                        PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
 
-                        foreach (var field in pdfFields)
+                        if (form != null)
                         {
-                            PdfFormField pdfField = form.GetField(field.Key);
-                            if (pdfField != null)
+                            var fields = form.GetAllFormFields();
+                            foreach (var item in pdfFields)
                             {
-                                pdfField.SetValue(field.Value ?? "");
+                                if (fields.ContainsKey(item.Key))
+                                {
+                                    fields[item.Key].SetValue(item.Value);
+                                }
                             }
-                        }
 
-                        form.FlattenFields();
-                        pdfDocument.Close();
+                            // APLANADO: Vital para convertir el PDF en "foto" 
+                            // y evitar que Adobe pida guardar cambios o corte páginas.
+                            form.FlattenFields();
+                        }
+                        pdfDoc.Close();
                     }
-                    File.WriteAllBytes(fullOutputPath, outputMemoryStream.ToArray());
+                    writer.Close(); // Forzamos el cierre físico del archivo
                 }
 
-                // 5. VISTA PREVIA (Para elegir impresora y ahorrar papel/tinta)
-                // Eliminamos el verbo "print" para que abra el visor predeterminado
-                ProcessStartInfo previewInfo = new ProcessStartInfo
-                {
-                    FileName = fullOutputPath,
-                    UseShellExecute = true
-                };
+                // B. PAUSA DE SEGURIDAD (5 segundos para que el disco termine la escritura física)
+                System.Threading.Thread.Sleep(5000);
 
-                Process.Start(previewInfo);
+                // --- C. IMPRESIÓN DIRECTA ---
+                ProcessStartInfo printInfo = new ProcessStartInfo();
+                printInfo.FileName = fullOutputPath;
+                printInfo.Verb = "print";
+                printInfo.CreateNoWindow = true;
+                printInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                printInfo.UseShellExecute = true;
+
+                Process.Start(printInfo);
+
+                // --- D. BORRADO SEGURO (En segundo plano) ---
+                // Esperamos 45 segundos para dar tiempo a que la cola de impresión termine de leer
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(45000);
+                        if (File.Exists(fullOutputPath))
+                        {
+                            File.Delete(fullOutputPath);
+                        }
+                    }
+                    catch
+                    {
+                        // Si falla porque el archivo sigue bloqueado, se ignora silenciosamente
+                    }
+                });
 
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Critical error during printing process:\n{ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Si falla la impresión, intentamos abrir el archivo para impresión manual
+                try { Process.Start(new ProcessStartInfo(fullOutputPath) { UseShellExecute = true }); } catch { }
+                MessageBox.Show($"Error en proceso: {ex.Message}");
                 return false;
             }
         }
+
+
     }
 }

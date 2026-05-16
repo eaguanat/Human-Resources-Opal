@@ -2,81 +2,67 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using Human_Resources.Data; // Para acceder a las clases de datos
-using System.IO; // Para File.Exists y Path.Combine
-using iText.Kernel.Pdf;
-using iText.Forms;
-using iText.Forms.Fields;
+using Human_Resources.Data;
+using System.IO;
 
 namespace Human_Resources.Forms
 {
     public partial class frmContractGenerator : Page
     {
-        // --- PROPIEDADES DE ESTADO DEL FORMULARIO ---
+        // --- PROPIEDADES DE ESTADO ---
         private int _selectedStaffId = 0;
         private ClassContractGenerator _contractData = new ClassContractGenerator();
+
+        public enum ViewMode
+        {
+            Search,
+            SearchResults,
+            ValidationPrint
+        }
 
         // --- CONSTRUCTOR ---
         public frmContractGenerator()
         {
             InitializeComponent();
-            ResetFormState(); // Inicializa el formulario en estado de búsqueda
+            ResetFormState();
         }
 
-        // --- INICIALIZACIÓN Y GESTIÓN DE ESTADO ---
-
-        // Definimos los modos de vista para el formulario
-        private enum ViewMode
-        {
-            Search,         // Mostrando el área de búsqueda de Staff y botones de búsqueda
-            SearchResults,  // Mostrando el DataGrid de resultados de Staff y botones de selección (filtro deshabilitado)
-            ValidationPrint // Mostrando la lista de validación y botones de impresión (filtro deshabilitado)
-        }
-
-        // Controlar la visibilidad de los paneles y botones según el modo de vista
+        // --- GESTIÓN DE ESTADO Y VISIBILIDAD ---
         private void CtrlForm(ViewMode mode)
         {
-            pnlSearchStaff.Visibility = Visibility.Collapsed;
+            // 1. Reset de visibilidad inicial
             GridStaffResults.Visibility = Visibility.Collapsed;
-            pnlStaffSelectionButtons.Visibility = Visibility.Collapsed;
             pnlValidationPrint.Visibility = Visibility.Collapsed;
+            pnlSearchButtons.Visibility = Visibility.Collapsed;
+            pnlPrintButtons.Visibility = Visibility.Collapsed;
 
-            // Siempre se ven los botones de Search y Exit
-            BtnSearch.Visibility = Visibility.Visible;
-            BtnExitSearch.Visibility = Visibility.Visible;
-
-            // Deshabilitar/Habilitar controles de búsqueda
-            txtSearchStaff.IsEnabled = true;
-            BtnSearch.IsEnabled = true;
-
+            // 2. Configuración por modo
             switch (mode)
             {
                 case ViewMode.Search:
                     lblTitulo.Text = "CONTRACT GENERATOR - SELECT STAFF";
-                    pnlSearchStaff.Visibility = Visibility.Visible; // Controles de búsqueda visibles y activos
+                    txtSearchStaff.IsEnabled = true;
+                    BtnSearch.IsEnabled = true;
                     txtSearchStaff.Focus();
                     break;
 
                 case ViewMode.SearchResults:
                     lblTitulo.Text = "CONTRACT GENERATOR - SELECT STAFF";
-                    pnlSearchStaff.Visibility = Visibility.Visible; // Controles de búsqueda visibles pero deshabilitados
-                    txtSearchStaff.IsEnabled = false;
+                    txtSearchStaff.IsEnabled = false; // Bloqueamos para que no filtren mientras seleccionan
                     BtnSearch.IsEnabled = false;
-                    GridStaffResults.Visibility = Visibility.Visible; // DataGrid visible
-                    pnlStaffSelectionButtons.Visibility = Visibility.Visible; // Botones "Select" y "Home" visibles
+                    GridStaffResults.Visibility = Visibility.Visible;
+                    pnlSearchButtons.Visibility = Visibility.Visible;
+                    BtnSelectStaff.Visibility = Visibility.Visible;
+                    BtnHomeSearch.Visibility = Visibility.Visible;
                     break;
 
                 case ViewMode.ValidationPrint:
                     lblTitulo.Text = $"CONTRACT FOR: {_contractData.StaffData.Name} {_contractData.StaffData.LastName}";
-                    pnlValidationPrint.Visibility = Visibility.Visible; // Panel de validación visible
-                    // Ocultamos los botones de búsqueda y selección, mostramos los de impresión/atrás
-                    BtnSearch.Visibility = Visibility.Collapsed;
-                    BtnExitSearch.Visibility = Visibility.Collapsed; // Exit propio del form de impresión
+                    pnlValidationPrint.Visibility = Visibility.Visible;
+                    pnlPrintButtons.Visibility = Visibility.Visible;
                     break;
             }
         }
@@ -86,126 +72,122 @@ namespace Human_Resources.Forms
             txtSearchStaff.Clear();
             dgStaffResults.ItemsSource = null;
             _selectedStaffId = 0;
-            _contractData = new ClassContractGenerator(); // Reinicializar datos del contrato
+            _contractData = new ClassContractGenerator();
             lstValidationResults.ItemsSource = null;
-            BtnPrint.IsEnabled = false; // Deshabilitar impresión
+            BtnPrint.IsEnabled = false;
+
             CtrlForm(ViewMode.Search);
         }
 
-        // --- EVENTOS DE PANTALLA DE BÚSQUEDA DE STAFF ---
+        // --- INDICADORES DE CARGA ---
+        private void ShowProgressIndicator(string message)
+        {
+            txtProgressMessage.Text = message;
+            pnlProgressOverlay.Visibility = Visibility.Visible;
+            this.IsEnabled = false;
+        }
+
+        private void HideProgressIndicator()
+        {
+            pnlProgressOverlay.Visibility = Visibility.Collapsed;
+            this.IsEnabled = true;
+        }
+
+        // --- EVENTOS ---
 
         private void BtnSearch_Click(object sender, RoutedEventArgs e)
         {
             string filter = txtSearchStaff.Text.Trim();
             if (string.IsNullOrWhiteSpace(filter))
             {
-                MessageBox.Show("Please enter a name or last name to search for staff.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
-                txtSearchStaff.Focus();
+                MessageBox.Show("Please enter a name or last name.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             ClassStaff staffManager = new ClassStaff();
-            // Modificamos Listar en ClassStaff para incluir DepartmentName si es necesario o un JOIN
-            // Por ahora, asumimos que Listar ya trae el DepartmentName si lo requiere el DataGrid
-            DataTable results = staffManager.Listar(filter);
+            DataTable results = staffManager.ListarParaContratos(filter);
 
             if (results != null && results.Rows.Count > 0)
             {
                 dgStaffResults.ItemsSource = results.DefaultView;
-                CtrlForm(ViewMode.SearchResults); // Mostrar resultados en DataGrid
+                CtrlForm(ViewMode.SearchResults);
             }
             else
             {
-                MessageBox.Show("No staff found matching your search criteria.", "Search Results", MessageBoxButton.OK, MessageBoxImage.Information);
-                dgStaffResults.ItemsSource = null;
-                CtrlForm(ViewMode.Search); // Quedarse en la vista de búsqueda si no hay resultados
+                MessageBox.Show("No staff found.", "Search", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-        }
-
-        private void txtSearchStaff_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            // Opcional: Podrías hacer una búsqueda en tiempo real aquí si la lista no es muy grande.
-            // Por ahora, solo se activa con el botón Search.
         }
 
         private async void BtnSelectStaff_Click(object sender, RoutedEventArgs e)
         {
             if (dgStaffResults.SelectedItem == null)
             {
-                MessageBox.Show("Please select a staff member from the list.", "Selection Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a staff member.", "Selection", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             DataRowView row = (DataRowView)dgStaffResults.SelectedItem;
             _selectedStaffId = (int)row["id"];
 
-            // Cargar todos los datos necesarios para el contrato
-            // Esto es asíncrono si ClassGeocoding.GetCoordinatesAsync se llama internamente,
-            // pero para esta funcionalidad, LoadContractData es síncrono.
-            if (_contractData.LoadContractData(_selectedStaffId))
+            ShowProgressIndicator("Loading and validating data...");
+
+            // Usamos Task.Run para no congelar la UI mientras carga de la DB
+            bool loadSuccess = await Task.Run(() => _contractData.LoadContractData(_selectedStaffId));
+
+            HideProgressIndicator();
+
+            if (loadSuccess)
             {
-                DisplayValidationChecklist(); // Mostrar checklist de validación
+                DisplayValidationChecklist();
                 CtrlForm(ViewMode.ValidationPrint);
             }
-            // Si LoadContractData falló, ya mostró un MessageBox, no hace falta más aquí.
         }
-
-        private void BtnHomeSearch_Click(object sender, RoutedEventArgs e)
-        {
-            // Limpiar búsqueda y volver a la pantalla de búsqueda inicial
-            ResetFormState();
-        }
-
-        // --- LÓGICA DE VALIDACIÓN Y PANTALLA DE IMPRESIÓN ---
 
         private void DisplayValidationChecklist()
         {
-            Dictionary<string, string> pdfFieldValues = _contractData.MapDataToPdfFields();
-            List<PdfFieldValidation> validations = _contractData.ValidatePdfFields(pdfFieldValues);
+            var pdfFieldValues = _contractData.MapDataToPdfFields();
+            var validations = _contractData.ValidatePdfFields(pdfFieldValues);
 
             lstValidationResults.ItemsSource = validations;
+            BtnPrint.IsEnabled = validations.All(v => v.IsPresent);
 
-            // Habilitar o deshabilitar el botón de imprimir
-            bool allFieldsPresent = validations.All(v => v.IsPresent);
-            BtnPrint.IsEnabled = allFieldsPresent;
-
-            if (!allFieldsPresent)
+            if (!BtnPrint.IsEnabled)
             {
-                MessageBox.Show("Some required data fields are missing. Please update the staff member's profile before printing.", "Data Incomplete", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Required fields are missing in the staff profile.", "Data Incomplete", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
-        private void BtnPrint_Click(object sender, RoutedEventArgs e)
+        private async void BtnPrint_Click(object sender, RoutedEventArgs e)
         {
-            if (!BtnPrint.IsEnabled) // Doble verificación por si acaso
-            {
-                MessageBox.Show("Cannot print: some required data fields are missing or not valid.", "Print Blocked", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            var pdfFieldValues = _contractData.MapDataToPdfFields();
 
-            // Mapear datos a campos PDF (de nuevo, para asegurar los últimos valores)
-            Dictionary<string, string> pdfFieldValues = _contractData.MapDataToPdfFields();
+            ShowProgressIndicator("Printing the Contract... Please check printer.");
 
-            // Intentar imprimir el PDF
-            if (_contractData.PrintPdfContract(pdfFieldValues))
+            bool printSuccess = await Task.Run(() => _contractData.PrintPdfContract(pdfFieldValues));
+
+            HideProgressIndicator();
+
+            if (printSuccess)
             {
-                MessageBox.Show("Contract sent to printer successfully.", "Print Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                ResetFormState(); // Volver a la pantalla de búsqueda inicial y limpiar
+                MessageBox.Show("Successfully sent to printer.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                ResetFormState();
             }
-            // Si PrintPdfContract falla, ya muestra un MessageBox.
         }
 
         private void BtnBackToSearch_Click(object sender, RoutedEventArgs e)
         {
-            CtrlForm(ViewMode.SearchResults); // Regresar a los resultados de búsqueda de Staff
-            // No es necesario recargar el DataGrid, ya tiene los resultados previos.
+            CtrlForm(ViewMode.SearchResults);
+        }
+
+        private void BtnHomeSearch_Click(object sender, RoutedEventArgs e)
+        {
+            ResetFormState();
         }
 
         private void BtnExit_Click(object sender, RoutedEventArgs e)
         {
-            // Lógica para cerrar la pestaña
             var principal = Window.GetWindow(this) as MainWindow;
-            if (principal != null)
+            if (principal?.tcPrincipal != null)
             {
                 TabItem tabToClose = null;
                 foreach (TabItem item in principal.tcPrincipal.Items)
@@ -216,11 +198,10 @@ namespace Human_Resources.Forms
                         break;
                     }
                 }
-                if (tabToClose != null)
-                {
-                    principal.tcPrincipal.Items.Remove(tabToClose);
-                }
+                if (tabToClose != null) principal.tcPrincipal.Items.Remove(tabToClose);
             }
         }
+
+        private void txtSearchStaff_TextChanged(object sender, TextChangedEventArgs e) { }
     }
 }
