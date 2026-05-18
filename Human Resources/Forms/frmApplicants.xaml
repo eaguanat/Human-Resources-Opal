@@ -24,6 +24,23 @@
                            FontSize="18" 
                            FontWeight="Bold" 
                            VerticalAlignment="Center"/>
+
+                <Button x:Name="BtnPromoteToStaff" 
+                        Content="_PROMOTE TO STAFF" 
+                        Click="BtnPromoteToStaff_Click"
+                        Style="{StaticResource MenuButtonStyle}"
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Top" 
+                        Margin="0,0,10,0" 
+                        Width="160" 
+                        Height="35"
+                        Background="#FF28A745" 
+                        Foreground="White" 
+                        FontWeight="Bold"
+                        Visibility="Collapsed">
+                    
+                </Button>
+
             </DockPanel>
         </Border>
 
@@ -323,6 +340,7 @@
                         Style="{StaticResource MenuButtonStyle}"    
                         FontSize="15"
                         Background="#2ecc71" Foreground="White" Margin="5" Visibility="Collapsed"/>
+                   
             </StackPanel>
         </Grid>
     </Grid>

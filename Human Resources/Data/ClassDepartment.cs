@@ -68,7 +68,7 @@ namespace Human_Resources.Data
                 using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
                 {
                     // Consulta actualizada para incluir ContractTemplateName
-                    string query = "UPDATE tblDepartment SET Description = @desc, Supervision = @supervision, ContractTemplateName = @template WHERE Id = @id";
+                    string query = "UPDATE tblDepartment SET Description = @desc, Supervision = @supervision WHERE Id = @id";
                     SqlCommand cmd = new SqlCommand(query, con);
                     cmd.Parameters.AddWithValue("@id", this.Id);
                     SetParameters(cmd);

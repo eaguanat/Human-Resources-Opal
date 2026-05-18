@@ -287,13 +287,16 @@ namespace Human_Resources.Data
             string templatesPath = CompanyData.PathTemplates ?? "";
             string contractsPath = CompanyData.PathContracts ?? "";
             string templateFileName = DepartmentData.ContractTemplateName ?? "";
-            string fullTemplatePath = Path.Combine(templatesPath, contractsPath, templateFileName);
+            string fullTemplatePath = $"{templatesPath}{contractsPath}{templateFileName}";
 
             string outputFileName = $"Temp_{StaffData.LastName}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-            string fullOutputPath = Path.Combine(templatesPath, contractsPath, outputFileName);
+            string fullOutputPath =  $"{templatesPath}{contractsPath}{outputFileName}";
 
-            if (!File.Exists(fullTemplatePath)) return false;
-
+            if (!File.Exists(fullTemplatePath))
+               {
+                MessageBox.Show("I cannot locate the template document.");
+                return false;
+                }
             try
             {
                 // --- A. GENERACIÓN (iText 7) ---

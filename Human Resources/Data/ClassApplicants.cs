@@ -297,5 +297,82 @@ namespace Human_Resources.Data
             cmd.Parameters.AddWithValue("@ServiceZipCodes", (object)ServiceZipCodes ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Observations", (object)Observations ?? DBNull.Value);
         }
+
+        /// <summary>
+        /// Mueve un aplicante a la tabla de Staff (como inactivo) y lo elimina de la lista de aplicantes.
+        /// Utiliza una transacción para asegurar la integridad de los datos.
+        /// </summary>
+        public bool PromoverAStaff(int idAplicante)
+        {
+            using (SqlConnection con = new SqlConnection(ClassConexion.CadenaConexion))
+            {
+                con.Open();
+                SqlTransaction transaction = con.BeginTransaction(); // Iniciamos la transacción
+
+                try
+                {
+                    // 1. Primero obtenemos los datos del aplicante (asegurándonos de tenerlos frescos)
+                    // Reutilizamos el query de ObtenerPorId pero asociado a la transacción
+                    string selectQuery = "SELECT * FROM tblApplicants WHERE Id = @Id";
+                    SqlCommand cmdSelect = new SqlCommand(selectQuery, con, transaction);
+                    cmdSelect.Parameters.AddWithValue("@Id", idAplicante);
+
+                    DataTable dt = new DataTable();
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmdSelect))
+                    {
+                        da.Fill(dt);
+                    }
+
+                    if (dt.Rows.Count == 0) throw new Exception("Applicant not found.");
+
+                    DataRow row = dt.Rows[0];
+
+                    // 2. Insertar en tblStaff 
+                    // Nota: Usamos 'Active' (bit) en lugar de 'Status' y mapeamos los nombres correctos.
+                    string insertQuery = @"
+                                        INSERT INTO tblStaff 
+                                        (Name, LastName, IdDepartment, Address, idGeoState, idGeoCity, ZipCod, Phone, Email, Active, HiredDay, Latitude, Longitude)
+                                        VALUES 
+                                        (@Name, @LastName, @IdDepartment, @Address, @idGeoState, @idGeoCity, @ZipCod, @Phone, @Email, 0, GETDATE(), @Latitude, @Longitude)";
+
+                    SqlCommand cmdInsert = new SqlCommand(insertQuery, con, transaction);
+
+                    // Mapeo: @Parametro -> row["Nombre_En_Tabla_Applicants"]
+                    cmdInsert.Parameters.AddWithValue("@Name", row["FirstName"]); // En Staff es 'Name', en Applicants es 'FirstName'
+                    cmdInsert.Parameters.AddWithValue("@LastName", row["LastName"]);
+                    cmdInsert.Parameters.AddWithValue("@IdDepartment", row["idDepartment"]);
+                    cmdInsert.Parameters.AddWithValue("@Address", row["Address"]);
+                    cmdInsert.Parameters.AddWithValue("@idGeoState", row["idGeoState"]);
+                    cmdInsert.Parameters.AddWithValue("@idGeoCity", row["idGeoCity"]);
+                    cmdInsert.Parameters.AddWithValue("@ZipCod", row["ZipCode"]); // En Staff es 'ZipCod', en Applicants es 'ZipCode'
+                    cmdInsert.Parameters.AddWithValue("@Phone", row["Phone"]);
+                    cmdInsert.Parameters.AddWithValue("@Email", row["Email"]);
+                    cmdInsert.Parameters.AddWithValue("@Latitude", row["Latitude"]);
+                    cmdInsert.Parameters.AddWithValue("@Longitude", row["Longitude"]);
+
+                    // Importante: 'Active' es bit. 0 = Inactivo (False).
+                    cmdInsert.Parameters.AddWithValue("@Active", 0);
+
+                    cmdInsert.ExecuteNonQuery();
+
+                    // 3. Eliminar de tblApplicants
+                    string deleteQuery = "DELETE FROM tblApplicants WHERE Id = @Id";
+                    SqlCommand cmdDelete = new SqlCommand(deleteQuery, con, transaction);
+                    cmdDelete.Parameters.AddWithValue("@Id", idAplicante);
+                    cmdDelete.ExecuteNonQuery();
+
+                    // Si todo salió bien, confirmamos los cambios
+                    transaction.Commit();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Si algo falla, deshacemos todo lo que se haya hecho en esta conexión
+                    transaction.Rollback();
+                    MessageBox.Show("Promotion failed: " + ex.Message, "Transaction Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return false;
+                }
+            }
+        }
     }
 }

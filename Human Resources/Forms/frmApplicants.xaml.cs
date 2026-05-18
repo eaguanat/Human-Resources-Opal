@@ -49,6 +49,7 @@ namespace Human_Resources.Forms
             // Oculta los paneles de contenido dinámico (resultados y detalle)
             pnlResultadosBusqueda.Visibility = Visibility.Collapsed;
             pnlDetalle.Visibility = Visibility.Collapsed;
+            BtnPromoteToStaff.Visibility = Visibility.Collapsed;
 
             // Oculta todos los botones de acción inferior por defecto
             BtnBuscar.Visibility = Visibility.Collapsed;
@@ -87,6 +88,7 @@ namespace Human_Resources.Forms
                     pnlDetalle.Visibility = Visibility.Visible;
                     lblTitulo.Text = "APPLICANTS MANAGEMENT - DETAILS";
                     SetFilterControlsEnabled(false); // Deshabilita los filtros
+                    BtnPromoteToStaff.Visibility = Visibility.Visible;
                     BtnActualizarStatus.Visibility = Visibility.Visible;
                     BtnEliminarDetalle.Visibility = Visibility.Visible;
                     BtnBackDetalle.Visibility = Visibility.Visible;
@@ -375,6 +377,32 @@ namespace Human_Resources.Forms
         private void BtnPrint_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Print functionality for Applicants is not yet implemented.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BtnPromoteToStaff_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Confirmación de seguridad
+            MessageBoxResult result = MessageBox.Show(
+                $"Are you sure you want to hire this applicant and promote them to Staff?\n\nThis will transfer the basic info and REMOVE the record from the web applicants list.",
+                "Confirm Hire / Promotion",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // 2. Instanciamos la clase de lógica (que modificaremos en el siguiente paso)
+                ClassApplicants applicant = new ClassApplicants();
+
+                // 3. Ejecutamos la promoción (pasando el ID que ya tenemos guardado en la variable de clase)
+                if (applicant.PromoverAStaff(idAplicanteSeleccionado))
+                {
+                    MessageBox.Show("Applicant successfully promoted to Staff!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // 4. Limpiamos y volvemos al inicio (o podrías redirigir al listado de Staff si quisieras)
+                    LimpiarFiltros();
+                    CtrlForm(ViewMode.Filter);
+                }
+            }
         }
     }
 }
